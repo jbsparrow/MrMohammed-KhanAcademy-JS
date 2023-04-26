@@ -25,25 +25,33 @@ var alphaSliderY = 360;
 
 
 var Button = function(config) {
-    this.x = config.x || 50
-    this.y = config.y || 50
-    this.width = config.width || 15
-    this.height = config.height || 15
-    this.colour = config.colour || color(88, 88, 88, 100)
-    this.stroke = config.stroke || color(0, 0, 0)
-    this.strokeWeight = config.strokeWeight || 1.0
-    this.shape = config.shape || 'square'
-    this.bevel = config.bevel || 0
-    this.onClick = config.onClick || function() {}
+    this.x = config.x || 50;
+    this.y = config.y || 50;
+    this.width = config.width || 15;
+    this.height = config.height || 15;
+    this.colour = config.colour || color(88, 88, 88, 100);
+    this.stroke = config.stroke || color(0, 0, 0);
+    this.strokeWeight = config.strokeWeight || 1.0;
+    this.shape = config.shape || 'square';
+    this.bevel = config.bevel || 0;
+    this.hidden = config.hidden || false;
+    this.onClick = config.onClick || function() {};
 };
 
 Button.prototype.draw = function() {
-    fill(0, 234, 255);
-    rect(this.x, this.y, this.width, this.height, 5);
+    fill(this.colour);
+    stroke(this.stroke);
+    strokeWeight(this.strokeWeight);
+    if (this.hidden) {
+        noStroke();
+        fill(255, 255, 255, 0);
+    }
+    if (this.shape === 'square') {
+        rect(this.x, this.y, this.width, this.height, this.bevel);
+    } else if (this.shape === 'circle') {
+        ellipse(this.x, this.y, this.width, this.height);
+    }
     fill(0, 0, 0);
-    textSize(19);
-    textAlign(LEFT, TOP);
-    text(this.label, this.x + 10, this.y + this.height / 4);
 };
 
 Button.prototype.isMouseInside = function() {
@@ -62,7 +70,6 @@ Button.prototype.handleMouseClick = function() {
 var btn1 = new Button({
     x: 100,
     y: 100,
-    label: "Please click!",
     onClick: function() {
         text("You made the right choice!", this.x, this.y + this.height);
     }
@@ -73,7 +80,6 @@ btn1.draw();
 var btn2 = new Button({
     x: 100,
     y: 213,
-    label: "No! Click ME!",
     onClick: function() {
         text("Yay, you picked me!", this.x, this.y + this.height);
     }
