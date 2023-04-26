@@ -33,8 +33,8 @@ var Button = function(config) {
     this.fill = config.fill;
     this.stroke = config.stroke;
     this.shape = config.shape || 'square';
-    this.fillColour = config.colour;
-    this.strokeColour = config.stroke || color(0, 0, 0);
+    this.fillColour = config.fillColour;
+    this.strokeColour = config.strokeColour || color(0, 0, 0);
     this.strokeWeight = config.strokeWeight || 1.0;
     this.bevel = config.bevel || 0;
     this.onClick = config.onClick || function() {};
@@ -63,10 +63,10 @@ Button.prototype.draw = function() {
 };
 
 Button.prototype.isMouseInside = function() {
-    return mouseX > this.x &&
-        mouseX < (this.x + this.width) &&
-        mouseY > this.y &&
-        mouseY < (this.y + this.height);
+    return (mouseX >= this.x &&
+        mouseX <= (this.x + this.width) &&
+        mouseY >= this.y &&
+        mouseY <= (this.y + this.height));
 };
 
 Button.prototype.handleMouseClick = function() {
@@ -75,7 +75,7 @@ Button.prototype.handleMouseClick = function() {
     }
 };
 
-var squareBrushButton = new Button({
+var squareBrushData = {
     x: 366,
     y: 12,
     width: 15,
@@ -87,9 +87,10 @@ var squareBrushButton = new Button({
     onClick: function() {
         brushType = "square";
     }
-});
+};
+var squareBrushButton = new Button(squareBrushData);
 
-var roundBrushButton = new Button({
+var roundBrushData = {
     x: 347,
     y: 11,
     width: 16,
@@ -101,7 +102,8 @@ var roundBrushButton = new Button({
     onClick: function() {
         brushType = "round";
     }
-});
+};
+var roundBrushButton = new Button(roundBrushData);
 
 
 var draw = function() {
@@ -179,4 +181,8 @@ mouseReleased = function() {
 mouseClicked = function() {
     squareBrushButton.handleMouseClick();
     roundBrushButton.handleMouseClick();
+    squareBrushData.fillColour = ((brushType === "square") ? color(88, 88, 88, 100) : color(255, 255, 255, 0));
+    roundBrushData.fillColour = ((brushType === "round") ? color(88, 88, 88, 100) : color(255, 255, 255, 0));
+    roundBrushButton = new Button(roundBrushData);
+    squareBrushButton = new Button(squareBrushData);
 };
