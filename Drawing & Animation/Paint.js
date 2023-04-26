@@ -1,3 +1,5 @@
+// https://www.khanacademy.org/computer-programming/paint-app/5833968965697536
+
 var r = 0;
 var g = 0;
 var b = 0;
@@ -19,11 +21,12 @@ var redSliderX = 30;
 var greenSliderX = 150;
 var blueSliderX = 270;
 var alphaSliderY = 360;
-var brushSizeX = 0;
 
 
 
 var draw = function() {
+    strokeWeight(1.0);
+    stroke(0, 0, 0);
     background(255, 255, 255);
     fill(255, 255, 255);
     // Colour selector
@@ -39,6 +42,30 @@ var draw = function() {
 
     fill(brushColor);
     rect(6, 368, 12, 12);
+
+
+
+    // Brush selector
+    if (brushType === "round") {
+        // Selection shadow
+        noStroke();
+        fill(88, 88, 88, 100);
+        rect(347, 11, 16, 16);
+        fill(brushColor);
+        stroke(0, 0, 0);
+    }
+    ellipse(355, 19, 12, 12);
+    if (brushType === "square") {
+        // Selection shadow
+        noStroke();
+        fill(88, 88, 88, 100);
+        rect(366, 12, 15, 16);
+        fill(brushColor);
+        stroke(0, 0, 0);
+    }
+    rect(367, 13, 12, 12);
+
+
 };
 
 
@@ -78,4 +105,16 @@ mouseReleased = function() {
     enableGreenSlider = false;
     enableBlueSlider = false;
     enableAlphaSlider = false;
+};
+
+
+mouseClicked = function() {
+    // If clicked in square selection box
+    if (mouseX < 381 && mouseX > 366 && mouseY < 26 && mouseY > 12) {
+        brushType = "square";
+    }
+    // If clicked in circle selection box
+    if (mouseX < 355 + 6 && mouseX > 355 - 6 && mouseY < 19 + 6 && mouseY > 19 - 6) {
+        brushType = "round";
+    }
 };
