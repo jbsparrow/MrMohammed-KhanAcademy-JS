@@ -8,6 +8,7 @@ var brushSize = 10;
 var brushType = "round";
 
 
+
 var brushColor = color(r, g, b, a);
 
 
@@ -29,23 +30,30 @@ var Button = function(config) {
     this.y = config.y || 50;
     this.width = config.width || 15;
     this.height = config.height || 15;
-    this.colour = config.colour || color(88, 88, 88, 100);
-    this.stroke = config.stroke || color(0, 0, 0);
-    this.strokeWeight = config.strokeWeight || 1.0;
+    this.fill = config.fill;
+    this.stroke = config.stroke;
     this.shape = config.shape || 'square';
+    this.fillColour = config.colour;
+    this.strokeColour = config.stroke || color(0, 0, 0);
+    this.strokeWeight = config.strokeWeight || 1.0;
     this.bevel = config.bevel || 0;
-    this.hidden = config.hidden || false;
     this.onClick = config.onClick || function() {};
 };
 
 Button.prototype.draw = function() {
-    fill(this.colour);
-    stroke(this.stroke);
-    strokeWeight(this.strokeWeight);
-    if (this.hidden) {
-        noStroke();
-        fill(255, 255, 255, 0);
+    if (this.fill === true) {
+        fill(this.fillColour);
+    } else if (this.fill === false) {
+        noFill();
     }
+
+    if (this.stroke === true) {
+        stroke(this.strokeColour);
+        strokeWeight(this.strokeWeight);
+    } else if (this.stroke === false) {
+        noStroke();
+    }
+
     if (this.shape === 'square') {
         rect(this.x, this.y, this.width, this.height, this.bevel);
     } else if (this.shape === 'circle') {
@@ -67,30 +75,33 @@ Button.prototype.handleMouseClick = function() {
     }
 };
 
-var btn1 = new Button({
-    x: 100,
-    y: 100,
+var squareBrushButton = new Button({
+    x: 366,
+    y: 12,
+    width: 15,
+    height: 16,
+    fill: true,
+    stroke: false,
+    shape: 'square',
+    fillColour: ((brushType === "square") ? color(88, 88, 88, 100) : color(255, 255, 255, 0)),
     onClick: function() {
-        text("You made the right choice!", this.x, this.y + this.height);
+        brushType = "square";
     }
 });
-btn1.draw();
 
-
-var btn2 = new Button({
-    x: 100,
-    y: 213,
+var roundBrushButton = new Button({
+    x: 347,
+    y: 11,
+    width: 16,
+    height: 16,
+    fill: true,
+    stroke: false,
+    shape: 'square',
+    fillColour: ((brushType === "round") ? color(88, 88, 88, 100) : color(255, 255, 255, 0)),
     onClick: function() {
-        text("Yay, you picked me!", this.x, this.y + this.height);
+        brushType = "round";
     }
 });
-btn2.draw();
-
-
-mouseClicked = function() {
-    btn1.handleMouseClick();
-    btn2.handleMouseClick();
-};
 
 
 var draw = function() {
@@ -115,26 +126,14 @@ var draw = function() {
 
 
     // Brush selector
-    if (brushType === "round") {
-        // Selection shadow
-        noStroke();
-        fill(88, 88, 88, 100);
-        rect(347, 11, 16, 16);
-        fill(brushColor);
-        stroke(0, 0, 0);
-    }
+    roundBrushButton.draw();
+    squareBrushButton.draw();
+
+
+    stroke(0, 0, 0);
+    fill(brushColor);
     ellipse(355, 19, 12, 12);
-    if (brushType === "square") {
-        // Selection shadow
-        noStroke();
-        fill(88, 88, 88, 100);
-        rect(366, 12, 15, 16);
-        fill(brushColor);
-        stroke(0, 0, 0);
-    }
     rect(367, 13, 12, 12);
-
-
 };
 
 
@@ -178,12 +177,6 @@ mouseReleased = function() {
 
 
 mouseClicked = function() {
-    // If clicked in square selection box
-    if (mouseX < 381 && mouseX > 366 && mouseY < 26 && mouseY > 12) {
-        brushType = "square";
-    }
-    // If clicked in circle selection box
-    if (mouseX < 362 && mouseX > 347 && mouseY < 27 && mouseY > 11) {
-        brushType = "round";
-    }
+    squareBrushButton.handleMouseClick();
+    roundBrushButton.handleMouseClick();
 };
