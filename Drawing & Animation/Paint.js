@@ -1,6 +1,7 @@
 // https://www.khanacademy.org/computer-programming/paint-app/5833968965697536
 
 var drawings = [];
+var points = [];
 
 var r = 0;
 var g = 0;
@@ -28,6 +29,28 @@ var blueSliderX = 270;
 var alphaSliderY = 360;
 
 
+
+var Drawing = function(config) {
+    this.x = config.x;
+    this.y = config.y;
+    this.fillColour = config.fillColour;
+    this.strokeColour = config.strokeColour || color(0, 0, 0);
+    this.size = config.size;
+    this.type = config.type;
+    this.points = config.points || [];
+};
+
+Drawing.prototype.draw = function() {
+    if (this.type === 'square') {
+        fill(this.fillColour);
+        stroke(this.strokeColour);
+        rect(this.x, this.y, this.size, this.size);
+    } else if (this.type === 'circle') {
+        fill(this.fillColour);
+        stroke(this.strokeColour);
+        ellipse(this.x, this.y, this.size, this.size);
+    }
+};
 
 var Button = function(config) {
     this.x = config.x || 50;
@@ -119,21 +142,22 @@ var draw = function() {
     stroke(0, 0, 0);
     background(255, 255, 255);
 
-    // Draw cursor
-    var mx = constrain(mouseX, 30, 390);
-    var my = constrain(mouseY, 36, 358);
-    if (brushType === "round") {
-        ellipse(mx, my, brushSize, brushSize);
-    } else if (brushType === "square") {
-        rect(mx - brushSize / 2, my - brushSize / 2, brushSize, brushSize);
-    }
-
 
     // Draw canvas
     noFill();
     strokeWeight(2.0);
     rect(30, 36, 360, 322);
     strokeWeight(1.0);
+
+    // Draw cursor
+    var mx = constrain(mouseX, 30, 390);
+    var my = constrain(mouseY, 36, 358);
+    fill(brushColor);
+    if (brushType === "round") {
+        ellipse(mx, my, brushSize, brushSize);
+    } else if (brushType === "square") {
+        rect(mx - brushSize / 2, my - brushSize / 2, brushSize, brushSize);
+    }
 
 
     fill(255, 255, 255);
@@ -162,6 +186,10 @@ var draw = function() {
     fill(brushColor);
     ellipse(355, 19, 12, 12);
     rect(367, 13, 12, 12);
+
+    for (var i = 0; i < drawings.length; i++) {
+        drawings[i].draw();
+    }
 };
 
 
@@ -211,6 +239,29 @@ mouseClicked = function() {
     roundBrushData.fillColour = ((brushType === "round") ? color(88, 88, 88, 100) : color(255, 255, 255, 0));
     roundBrushButton = new Button(roundBrushData);
     squareBrushButton = new Button(squareBrushData);
+    debug(mouseInCanvas());
+    if (mouseInCanvas()) {
+        if (brushType === "round") {
+            var drawingData = {
+                x: mouseX,
+                y: mouseY,
+                size: brushSize,
+                fillColour: brushColor,
+                type: brushType
+            };
+            drawings.push(new Drawing(drawingData));
+        } else if (brushType === "square") {
+            var drawingData = {
+                x: mouseX - brushSize / 2,
+                y: mouseY - brushSize / 2,
+                size: brushSize,
+                fillColour: brushColor,
+                type: brushType
+            };
+            drawings.push(new Drawing(drawingData));
+        }
+        debug(drawings.length, drawings);
+    }
 };
 
 keyPressed = function() {
