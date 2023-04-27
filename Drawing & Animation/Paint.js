@@ -1,5 +1,7 @@
 // https://www.khanacademy.org/computer-programming/paint-app/5833968965697536
 
+var drawings = [];
+
 var r = 0;
 var g = 0;
 var b = 0;
@@ -7,6 +9,8 @@ var a = 255;
 var brushSize = 10;
 var brushType = "round";
 
+var shiftPressed = false;
+var ctrlPressed = false;
 
 
 var brushColor = color(r, g, b, a);
@@ -105,11 +109,33 @@ var roundBrushData = {
 };
 var roundBrushButton = new Button(roundBrushData);
 
+var mouseInCanvas = function() {
+    return (mouseX > 30 && mouseX < 390 && mouseY > 36 && mouseY < 358);
+};
+
 
 var draw = function() {
     strokeWeight(1.0);
     stroke(0, 0, 0);
     background(255, 255, 255);
+
+    // Draw cursor
+    var mx = constrain(mouseX, 30, 390);
+    var my = constrain(mouseY, 36, 358);
+    if (brushType === "round") {
+        ellipse(mx, my, brushSize, brushSize);
+    } else if (brushType === "square") {
+        rect(mx - brushSize / 2, my - brushSize / 2, brushSize, brushSize);
+    }
+
+
+    // Draw canvas
+    noFill();
+    strokeWeight(2.0);
+    rect(30, 36, 360, 322);
+    strokeWeight(1.0);
+
+
     fill(255, 255, 255);
     // Colour selector
     line(30, 375, 130, 375);
@@ -185,4 +211,20 @@ mouseClicked = function() {
     roundBrushData.fillColour = ((brushType === "round") ? color(88, 88, 88, 100) : color(255, 255, 255, 0));
     roundBrushButton = new Button(roundBrushData);
     squareBrushButton = new Button(squareBrushData);
+};
+
+keyPressed = function() {
+    if (keyCode === SHIFT) {
+        shiftPressed = true;
+    } else if (keyCode === CONTROL) {
+        ctrlPressed = true;
+    }
+};
+
+keyReleased = function() {
+    if (keyCode === SHIFT) {
+        shiftPressed = false;
+    } else if (keyCode === CONTROL) {
+        ctrlPressed = false;
+    }
 };
