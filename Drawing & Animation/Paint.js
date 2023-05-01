@@ -3,6 +3,7 @@ frameRate(9e+18);
 
 
 var drawings = [];
+var clearedCanvases = [];
 var undoneDrawings = [];
 var currentDrawing = [];
 var currentTempDrawing = [];
@@ -24,6 +25,7 @@ var allowDrawing = false;
 var shiftPressed = false;
 var ctrlPressed = false;
 var pointMode = false;
+var help = false;
 
 
 var brushColor = color(r, g, b, a);
@@ -36,11 +38,11 @@ var enableAlphaSlider = false;
 var enableBrushSizeSlider = false;
 
 
-var redSliderX = (r / 255) * 100 + 30; // min 30 max 130
-var greenSliderX = (g / 255) * 100 + 150; // min 150 max 250
-var blueSliderX = (b / 255) * 100 + 270; // min 270 max 370
-var alphaSliderY = (a / 255) * 100 + 260; // min 260 max 360
-var brushSizeSliderX = (brushSize * 2) + 30;
+var redSliderX = round(map(r, 0, 255, 30, 130)); // min 30 max 130
+var greenSliderX = round(map(g, 0, 255, 150, 250)); // min 150 max 250
+var blueSliderX = round(map(b, 0, 255, 270, 370)); // min 270 max 370
+var alphaSliderY = round(map(a, 0, 255, 260, 360)); // min 260 max 360
+var brushSizeSliderX = round(map(brushSize, 1, 50, 30, 130)); // min 30 max 130
 
 var mx = 200;
 var my = 200;
@@ -138,7 +140,14 @@ var Tooltip = function(config) {
     this.y = config.y;
     this.width = config.width;
     this.height = config.height;
+    this.boxOffsetX = config.boxOffsetX || 0;
+    this.boxOffsetY = config.boxOffsetY || 0;
+    this.textBoxWidth = config.textBoxWidth || config.width;
+    this.textBoxHeight = config.textBoxHeight || config.height;
     this.text = config.text;
+    this.monitorSlider = config.monitorSlider || "none";
+    this.textOffsetX = config.textOffsetX || 0;
+    this.textOffsetY = config.textOffsetY || 0;
     this.backgroundColour = config.backgroundColour || color(88, 88, 88, 200);
     this.textColour = config.textColour || color(255, 255, 255);
     this.textSize = config.textSize || 12;
@@ -151,6 +160,8 @@ var Tooltip = function(config) {
     this.hoverTime = config.hoverTime || 1000;
     this.hovering = false;
     this.hoverStart = 0;
+    this.preview = config.preview || false;
+    this.drawOverHelp = config.drawOverHelp || false;
 };
 
 Tooltip.prototype.isHovering = function() {
@@ -162,49 +173,272 @@ Tooltip.prototype.isHovering = function() {
         return true;
     } else {
         this.hovering = false;
+        this.hoverStart = 0;
         return false;
     }
 };
 
 
-Tooltip.prototype.hoverTime = function() {
-    if (this.isHovering()) {
-        if (millis() - this.hoverStart >= this.hoverTime) {
-            return true;
-        } else {
-            return false;
-        }
-    }
-};
-
-
 Tooltip.prototype.drawTooltip = function() {
-    if (this.hoverTime()) {
+    if (millis() - this.hoverStart >= this.hoverTime && this.hoverStart !== 0) {
         fill(this.backgroundColour);
         stroke(this.outlineColour);
         strokeWeight(this.outlineWeight);
-        rect(this.x, this.y, this.width, this.height, this.bevel);
+        // rect(this.x + this.boxOffsetX, this.y + this.boxOffsetY, this.textBoxWidth, this.textBoxHeight, this.bevel);
+        var constrainedX = mouseX;
+        if (mouseX + this.boxOffsetX + this.textBoxWidth >= 400) {
+            constrainedX = mouseX - ((mouseX + this.boxOffsetX + this.textBoxWidth) - (400 - this.outlineWeight));
+        }
+        rect(constrainedX + this.boxOffsetX, mouseY + this.boxOffsetY, this.textBoxWidth, this.textBoxHeight, this.bevel);
         fill(this.textColour);
         textFont(this.textFont);
         textSize(this.textSize);
-        text(this.text, this.x + 5, this.y + 15);
+        // text(this.text, this.x + this.boxOffsetX + 5 + this.textOffsetX, this.y + this.boxOffsetY + 15 + this.textOffsetY);
+        if (this.monitorSlider === "none") {
+            text(this.text, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, mouseY + 15 + this.textOffsetY + this.boxOffsetY);
+        } else if (this.monitorSlider === "red") {
+            var tooltipText = "Red: " + r.toString();
+            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, mouseY + 15 + this.textOffsetY + this.boxOffsetY);
+        } else if (this.monitorSlider === "green") {
+            var tooltipText = "Green: " + g.toString();
+            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, mouseY + 15 + this.textOffsetY + this.boxOffsetY);
+        } else if (this.monitorSlider === "blue") {
+            var tooltipText = "Blue: " + b.toString();
+            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, mouseY + 15 + this.textOffsetY + this.boxOffsetY);
+        } else if (this.monitorSlider === "alpha") {
+            var mappedAlpha = map(a, 0, 255, 0, 100);
+            var tooltipText = "Opacity: " + round(mappedAlpha).toString() + "%";
+            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, mouseY + 15 + this.textOffsetY + this.boxOffsetY);
+        } else if (this.monitorSlider === "brushSize") {
+            var tooltipText = "Brush Size: " + brushSize.toString();
+            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, mouseY + 15 + this.textOffsetY + this.boxOffsetY);
+        }
     }
-    fill(88, 88, 88, 150);
-    rect(this.x, this.y, this.width, this.height, this.bevel);
+    if (this.preview === true) {
+        var constrainedX1 = mouseX;
+        if (mouseX + this.boxOffsetX + this.textBoxWidth >= 400) {
+            constrainedX1 = mouseX - ((mouseX + this.boxOffsetX + this.textBoxWidth) - (400 - this.outlineWeight));
+        }
+        var constrainedX = constrain(constrainedX1, 55, 365);
+        var constrainedY = constrain(mouseY, 61, 333);
+        fill(this.backgroundColour);
+        stroke(this.outlineColour);
+        strokeWeight(this.outlineWeight);
+        // rect(this.x + this.boxOffsetX, this.y + this.boxOffsetY, this.textBoxWidth, this.textBoxHeight, this.bevel);
+        rect(constrainedX + this.boxOffsetX, constrainedY + this.boxOffsetY, this.textBoxWidth, this.textBoxHeight, this.bevel);
+        fill(this.textColour);
+        textFont(this.textFont);
+        textSize(this.textSize);
+        // text(this.text, this.x + this.boxOffsetX + 5 + this.textOffsetX, this.y + this.boxOffsetY + 15 + this.textOffsetY);
+        if (this.monitorSlider === "none") {
+            text(this.text, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
+        } else if (this.monitorSlider === "red") {
+            var tooltipText = "Red: " + r.toString();
+            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
+        } else if (this.monitorSlider === "green") {
+            var tooltipText = "Green: " + g.toString();
+            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
+        } else if (this.monitorSlider === "blue") {
+            var tooltipText = "Blue: " + b.toString();
+            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
+        } else if (this.monitorSlider === "alpha") {
+            var mappedAlpha = map(a, 0, 255, 0, 100);
+            var tooltipText = "Opacity: " + round(mappedAlpha).toString() + "%";
+            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
+        } else if (this.monitorSlider === "brushSize") {
+            var tooltipText = "Brush Size: " + brushSize.toString();
+            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
+        }
+
+        fill(88, 0, 0, 200);
+        rect(this.x, this.y, this.width, this.height);
+    }
 };
 
 var redSliderTooltip = new Tooltip({
-    x: 10,
-    y: 10,
-    width: 100,
+    x: 26,
+    y: 365,
+    width: 107,
     height: 20,
     text: "Red",
-    hoverTime: 1250
+    monitorSlider: "red",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: -26,
+    textBoxWidth: 59,
+    preview: false,
 });
 tooltips.push(redSliderTooltip);
 
+var greenSliderTooltip = new Tooltip({
+    x: 146,
+    y: 365,
+    width: 107,
+    height: 20,
+    text: "Green",
+    monitorSlider: "green",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: -26,
+    textBoxWidth: 71,
+    preview: false,
+});
+tooltips.push(greenSliderTooltip);
 
+var blueSliderTooltip = new Tooltip({
+    x: 267,
+    y: 365,
+    width: 107,
+    height: 20,
+    text: "Blue",
+    monitorSlider: "blue",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: -26,
+    textBoxWidth: 61,
+    preview: false,
+});
+tooltips.push(blueSliderTooltip);
 
+var alphaSliderTooltip = new Tooltip({
+    x: 2,
+    y: 257,
+    width: 20,
+    height: 108,
+    text: "Alpha",
+    monitorSlider: "alpha",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: -26,
+    textBoxWidth: 86,
+    textBoxHeight: 20,
+    textOffsetX: 0,
+    textOffsetY: 0,
+    preview: false,
+});
+tooltips.push(alphaSliderTooltip);
+
+var colourPickerPreviewTooltip = new Tooltip({
+    x: 5,
+    y: 367,
+    width: 14,
+    height: 14,
+    text: "Colour selector preview",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: -26,
+    textBoxWidth: 134,
+    textBoxHeight: 16,
+    textOffsetX: 0,
+    textOffsetY: -2,
+    preview: false,
+});
+tooltips.push(colourPickerPreviewTooltip);
+
+var brushSizeSliderTooltip = new Tooltip({
+    x: 27,
+    y: 8,
+    width: 107,
+    height: 20,
+    text: "Brush Size",
+    monitorSlider: "brushSize",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: 16,
+    textBoxWidth: 87,
+    preview: false,
+});
+tooltips.push(brushSizeSliderTooltip);
+
+var strokeButtonTooltip = new Tooltip({
+    x: 275,
+    y: 11,
+    width: 18,
+    height: 16,
+    text: "Outline",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: 16,
+    textBoxWidth: 47,
+    textOffsetY: -2,
+    preview: false,
+});
+tooltips.push(strokeButtonTooltip);
+
+var customShapeTooltip = new Tooltip({
+    x: 301,
+    y: 10,
+    width: 25,
+    height: 18,
+    text: "Custom Shape",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: 16,
+    textBoxWidth: 88,
+    textOffsetY: -1,
+    preview: false,
+});
+tooltips.push(customShapeTooltip);
+
+var lineBrushTooltip = new Tooltip({
+    x: 329,
+    y: 10,
+    width: 14,
+    height: 17,
+    text: "Line Tool",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: 16,
+    textBoxWidth: 57,
+    textOffsetY: -2,
+    preview: false,
+});
+tooltips.push(lineBrushTooltip);
+
+var ellipseBrushTooltip = new Tooltip({
+    x: 346,
+    y: 10,
+    width: 17,
+    height: 17,
+    text: "Round brush",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: 16,
+    textBoxWidth: 78,
+    textOffsetY: -2,
+    preview: false,
+});
+tooltips.push(ellipseBrushTooltip);
+
+var squareBrushTooltip = new Tooltip({
+    x: 365,
+    y: 10,
+    width: 17,
+    height: 17,
+    text: "Square brush",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: 16,
+    textBoxWidth: 82,
+    textOffsetY: -2,
+    preview: false,
+});
+tooltips.push(squareBrushTooltip);
+
+var helpButtonTooltip = new Tooltip({
+    x: 5,
+    y: 10,
+    width: 16,
+    height: 16,
+    text: "Help",
+    hoverTime: 1250,
+    boxOffsetX: 0,
+    boxOffsetY: 16,
+    textBoxWidth: 34,
+    textOffsetY: -2,
+    preview: false,
+});
+tooltips.push(helpButtonTooltip);
 
 
 var Button = function(config) {
@@ -369,6 +603,22 @@ var quadButtonData = {
 };
 buttons.push(new Button(quadButtonData));
 
+var helpButtonData = {
+    x: 5,
+    y: 10,
+    width: 16,
+    height: 16,
+    fill: false,
+    stroke: true,
+    shape: 'square',
+    bevel: 5,
+    strokeColour: color(0, 0, 0),
+    onClick: function() {
+        help = !help;
+    }
+};
+buttons.push(new Button(helpButtonData));
+
 
 var mouseInCanvas = function() {
     return (mouseX > 30 && mouseX < 390 && mouseY > 36 && mouseY < 358);
@@ -380,7 +630,6 @@ var draw = function() {
     stroke(0, 0, 0);
     background(237, 237, 237);
 
-
     // Draw canvas
     noFill();
     strokeWeight(2.0);
@@ -388,75 +637,89 @@ var draw = function() {
     rect(30, 36, 360, 322);
     strokeWeight(1.0);
 
-    for (var i = 0; i < drawings.length; i++) {
-        // Check if drawing is of type Drawing or Array
-        if (drawings[i] instanceof Drawing) {
-            drawings[i].draw();
-        } else if (drawings[i] instanceof LineConstructor || drawings[i] instanceof QuadConstructor) {
-            drawings[i].draw();
-        } else if (drawings[i] instanceof Array) {
-            for (var j = 0; j < drawings[i].length; j++) {
-                drawings[i][j].draw();
-            }
-        }
-    }
 
-    // Draw cursor
-    if (shiftPressed === true) {
-        mx = constrain(mouseX, 30, 390);
-        my = cached_my_value;
-    } else if (ctrlPressed === true) {
-        mx = cached_mx_value;
-        my = constrain(mouseY, 36, 358);
-    } else {
-        mx = constrain(mouseX, 30, 390);
-        my = constrain(mouseY, 36, 358);
-    }
-
-    if (pointMode === true) {
-        if (brushType === "line") {
-            strokeWeight(brushSize);
-            stroke(brushColor);
-            fill(brushColor);
-            if (points.length === 0) {
-                line(mx, my, mx, my);
-            } else if (points.length === 1) {
-                line(points[0].x, points[0].y, mx, my);
-            }
-        } else if (brushType === "quad") {
-            // Fill extra points with mouse position
-            if (points.length === 0) {
-                stroke(brushColor);
-                strokeWeight((enableStroke === true ? brushSize : 1.0));
-                point(mx, my);
-            } else {
-                var tempPoints = [];
-                for (var i = 0; i < points.length; i++) {
-                    tempPoints.push(points[i]);
+    if (help === false) {
+        for (var i = 0; i < drawings.length; i++) {
+            // Check if drawing is of type Drawing or Array
+            if (drawings[i] instanceof Drawing) {
+                drawings[i].draw();
+            } else if (drawings[i] instanceof LineConstructor || drawings[i] instanceof QuadConstructor) {
+                drawings[i].draw();
+            } else if (drawings[i] instanceof Array) {
+                for (var j = 0; j < drawings[i].length; j++) {
+                    drawings[i][j].draw();
                 }
-                tempPoints.push(new PVector(mx, my));
-                var quadData = {
-                    points: tempPoints,
-                    fillColour: brushColor,
-                    stroke: ((enableStroke === true || tempPoints.length <= 2) ? true : false),
-                    strokeWeight: (tempPoints.length <= 2 ? 1.0 : brushSize)
-                };
-                new QuadConstructor(quadData).draw();
             }
         }
-        strokeWeight(1.0);
-        stroke(0, 0, 0);
+
+        // Draw cursor
+        if (shiftPressed === true) {
+            mx = constrain(mouseX, 30, 390);
+            my = cached_my_value;
+        } else if (ctrlPressed === true) {
+            mx = cached_mx_value;
+            my = constrain(mouseY, 36, 358);
+        } else {
+            mx = constrain(mouseX, 30, 390);
+            my = constrain(mouseY, 36, 358);
+        }
+
+        if (pointMode === true) {
+            if (brushType === "line") {
+                strokeWeight(brushSize);
+                stroke(brushColor);
+                fill(brushColor);
+                if (points.length === 0) {
+                    line(mx, my, mx, my);
+                } else if (points.length === 1) {
+                    line(points[0].x, points[0].y, mx, my);
+                }
+            } else if (brushType === "quad") {
+                // Fill extra points with mouse position
+                if (points.length === 0) {
+                    stroke(brushColor);
+                    strokeWeight(brushSize);
+                    point(mx, my);
+                } else {
+                    var tempPoints = [];
+                    for (var i = 0; i < points.length; i++) {
+                        tempPoints.push(points[i]);
+                    }
+                    tempPoints.push(new PVector(mx, my));
+                    var quadData = {
+                        points: tempPoints,
+                        fillColour: brushColor,
+                        stroke: ((enableStroke === true || tempPoints.length <= 2) ? true : false),
+                        strokeWeight: (tempPoints.length <= 2 ? 1.0 : brushSize)
+                    };
+                    new QuadConstructor(quadData).draw();
+                }
+            }
+            strokeWeight(1.0);
+            stroke(0, 0, 0);
+        } else {
+            if (!enableStroke) {
+                noStroke();
+            }
+            fill(brushColor);
+            if (brushType === "round") {
+                ellipse(mx, my, brushSize, brushSize);
+            } else if (brushType === "square") {
+                rect(mx - brushSize / 2, my - brushSize / 2, brushSize, brushSize);
+            }
+            stroke(0, 0, 0);
+        }
     } else {
-        if (!enableStroke) {
-            noStroke();
-        }
-        fill(brushColor);
-        if (brushType === "round") {
-            ellipse(mx, my, brushSize, brushSize);
-        } else if (brushType === "square") {
-            rect(mx - brushSize / 2, my - brushSize / 2, brushSize, brushSize);
-        }
-        stroke(0, 0, 0);
+        fill(0, 0, 0);
+        text("Hover over buttons to see what they do", 40, 55);
+
+        text("Keyboard Shortcuts:", 40, 80);
+        text("Z: Undo", 40, 100);
+        text("X: Redo", 40, 120);
+        text("Enter: Finish custom shape", 40, 140);
+        text("Shift: Horizontal line", 40, 160);
+        text("Ctrl: Vertical line", 40, 180);
+        text("Shift + C: Clear canvas", 40, 200);
     }
 
 
@@ -497,6 +760,17 @@ var draw = function() {
     quad(304, 25, 309, 13, 319, 13, 324, 25); // Quadrilateral drawing mode button
     fill(255, 255, 255);
     rect(278, 13, 12, 12);
+
+    // Help Button
+    fill(0, 0, 0);
+    if (help === false) {
+        text("?", 10, 23);
+    } else {
+        text("X", 10, 23);
+    }
+    for (var i = 0; i < tooltips.length; i++) {
+        tooltips[i].drawTooltip();
+    }
 };
 
 
@@ -527,7 +801,7 @@ mouseDragged = function() {
         alphaSliderY = constrain(mouseY, 260, 360);
     } else if (enableBrushSizeSlider) {
         brushSizeSliderX = constrain(mouseX, 30, 130);
-    } else if (mouseInCanvas() || allowDrawing) {
+    } else if ((mouseInCanvas() || allowDrawing) && help === false) {
         if (drawings[drawings.length - 1] === currentDrawing) {
             drawings.pop();
         }
@@ -556,11 +830,11 @@ mouseDragged = function() {
     }
 
 
-    r = constrain(round((redSliderX - 30) * 2.55), 0, 255);
-    g = constrain(round((greenSliderX - 150) * 2.55), 0, 255);
-    b = constrain(round((blueSliderX - 270) * 2.55), 0, 255);
-    a = constrain(round((alphaSliderY - 260) * 2.55), 0, 255);
-    brushSize = constrain(round((brushSizeSliderX - 30) * 0.5), 1, 50);
+    r = round(map(redSliderX, 30, 130, 0, 255));
+    g = round(map(greenSliderX, 150, 250, 0, 255));
+    b = round(map(blueSliderX, 270, 370, 0, 255));
+    a = round(map(alphaSliderY, 260, 360, 0, 255));
+    brushSize = round(map(brushSizeSliderX, 30, 130, 1, 50));
     brushColor = color(r, g, b, a);
 };
 
@@ -586,7 +860,7 @@ mouseClicked = function() {
     }
 
 
-    if (mouseInCanvas()) {
+    if (mouseInCanvas() && help === false) {
         if (brushType === "round") {
             var drawingData = {
                 x: mx,
@@ -671,9 +945,11 @@ keyTyped = function() {
             brushSize -= 1;
             brushSizeSliderX = (brushSize * 2) + 30;
         }
-    } else if (key.toString() === 'Z' || key.toString() === 'z') {
+    } else if ((key.toString() === 'Z' || key.toString() === 'z') && help === false) {
         // Undo
-        if (brushType === "quad") {
+        if (clearedCanvases.length > 0 && drawings.length === 0) {
+            drawings = clearedCanvases.pop();
+        } else if (brushType === "quad") {
             if (points.length > 0) {
                 undonePoints.push(points.pop());
             } else if (drawings.length > 0 && drawings[drawings.length - 1] instanceof QuadConstructor) {
@@ -700,7 +976,7 @@ keyTyped = function() {
                 undoneDrawings.push(drawings.pop());
             }
         }
-    } else if (key.toString === 'X' || key.toString() === 'x') {
+    } else if ((key.toString === 'X' || key.toString() === 'x') && help === false) {
         // Redo
         if (brushType === "quad") {
             if (undonePoints.length > 0) {
@@ -714,7 +990,7 @@ keyTyped = function() {
         } else if (undoneDrawings.length > 0) {
             drawings.push(undoneDrawings.pop());
         }
-    } else if (key.code === 10) {
+    } else if (key.code === 10 && help === false) {
         if (brushType === "quad") {
             points.push(new PVector(mx, my));
             var quadData = {
@@ -726,11 +1002,18 @@ keyTyped = function() {
             drawings.push(new QuadConstructor(quadData));
             points = [];
         }
+    } else if ((key.toString() === 'C' || key.toString() === 'c') && shiftPressed === true && help === false) {
+        // Clear Canvas
+        clearedCanvases.push(drawings);
+        drawings = [];
+        points = [];
+        undoneDrawings = [];
+        undonePoints = [];
     }
 };
 
 mouseMoved = function() {
     for (var i = 0; i < tooltips.length; i++) {
-        tooltips[i].drawTooltip();
+        tooltips[i].isHovering();
     }
 };
