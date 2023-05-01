@@ -263,7 +263,7 @@ var redSliderTooltip = new Tooltip({
     height: 20,
     text: "Red",
     monitorSlider: "red",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: -26,
     textBoxWidth: 59,
@@ -278,7 +278,7 @@ var greenSliderTooltip = new Tooltip({
     height: 20,
     text: "Green",
     monitorSlider: "green",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: -26,
     textBoxWidth: 71,
@@ -293,7 +293,7 @@ var blueSliderTooltip = new Tooltip({
     height: 20,
     text: "Blue",
     monitorSlider: "blue",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: -26,
     textBoxWidth: 61,
@@ -308,7 +308,7 @@ var alphaSliderTooltip = new Tooltip({
     height: 108,
     text: "Alpha",
     monitorSlider: "alpha",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: -26,
     textBoxWidth: 86,
@@ -325,7 +325,7 @@ var colourPickerPreviewTooltip = new Tooltip({
     width: 14,
     height: 14,
     text: "Colour selector preview",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: -26,
     textBoxWidth: 134,
@@ -343,7 +343,7 @@ var brushSizeSliderTooltip = new Tooltip({
     height: 20,
     text: "Brush Size",
     monitorSlider: "brushSize",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: 16,
     textBoxWidth: 87,
@@ -357,7 +357,7 @@ var strokeButtonTooltip = new Tooltip({
     width: 18,
     height: 16,
     text: "Outline",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: 16,
     textBoxWidth: 47,
@@ -372,7 +372,7 @@ var customShapeTooltip = new Tooltip({
     width: 25,
     height: 18,
     text: "Custom Shape",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: 16,
     textBoxWidth: 88,
@@ -387,7 +387,7 @@ var lineBrushTooltip = new Tooltip({
     width: 14,
     height: 17,
     text: "Line Tool",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: 16,
     textBoxWidth: 57,
@@ -402,7 +402,7 @@ var ellipseBrushTooltip = new Tooltip({
     width: 17,
     height: 17,
     text: "Round brush",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: 16,
     textBoxWidth: 78,
@@ -417,7 +417,7 @@ var squareBrushTooltip = new Tooltip({
     width: 17,
     height: 17,
     text: "Square brush",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: 16,
     textBoxWidth: 82,
@@ -432,7 +432,7 @@ var helpButtonTooltip = new Tooltip({
     width: 16,
     height: 16,
     text: "Help",
-    hoverTime: 1250,
+    hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: 16,
     textBoxWidth: 34,
@@ -733,9 +733,13 @@ var draw = function() {
     line(270, 375, 370, 375);
     line(12, 360, 12, 260);
 
+    fill(255, 0, 0);
     ellipse(redSliderX, 375, 5, 5);
+    fill(0, 255, 0);
     ellipse(greenSliderX, 375, 5, 5);
+    fill(0, 0, 255);
     ellipse(blueSliderX, 375, 5, 5);
+    fill(255, 255, 255);
     ellipse(12, alphaSliderY, 5, 5);
 
     fill(brushColor);
