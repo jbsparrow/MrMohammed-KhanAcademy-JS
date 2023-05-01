@@ -13,10 +13,10 @@ var temporaryPoints = [];
 var buttons = [];
 var tooltips = [];
 
-var r = 150;
+var r = 0;
 var g = 209;
-var b = 99;
-var a = 255;
+var b = 207;
+var a = 86.7;
 var brushSize = 10;
 var brushType = "round";
 var enableStroke = false;
@@ -26,6 +26,7 @@ var shiftPressed = false;
 var ctrlPressed = false;
 var pointMode = false;
 var help = false;
+var hideCursor = false;
 
 
 var brushColor = color(r, g, b, a);
@@ -651,7 +652,6 @@ var draw = function() {
                 }
             }
         }
-
         // Draw cursor
         if (shiftPressed === true) {
             mx = constrain(mouseX, 30, 390);
@@ -664,50 +664,52 @@ var draw = function() {
             my = constrain(mouseY, 36, 358);
         }
 
-        if (pointMode === true) {
-            if (brushType === "line") {
-                strokeWeight(brushSize);
-                stroke(brushColor);
-                fill(brushColor);
-                if (points.length === 0) {
-                    line(mx, my, mx, my);
-                } else if (points.length === 1) {
-                    line(points[0].x, points[0].y, mx, my);
-                }
-            } else if (brushType === "quad") {
-                // Fill extra points with mouse position
-                if (points.length === 0) {
-                    stroke(brushColor);
+        if (hideCursor === false) {
+            if (pointMode === true) {
+                if (brushType === "line") {
                     strokeWeight(brushSize);
-                    point(mx, my);
-                } else {
-                    var tempPoints = [];
-                    for (var i = 0; i < points.length; i++) {
-                        tempPoints.push(points[i]);
+                    stroke(brushColor);
+                    fill(brushColor);
+                    if (points.length === 0) {
+                        line(mx, my, mx, my);
+                    } else if (points.length === 1) {
+                        line(points[0].x, points[0].y, mx, my);
                     }
-                    tempPoints.push(new PVector(mx, my));
-                    var quadData = {
-                        points: tempPoints,
-                        fillColour: brushColor,
-                        stroke: ((enableStroke === true || tempPoints.length <= 2) ? true : false),
-                        strokeWeight: (tempPoints.length <= 2 ? 1.0 : brushSize)
-                    };
-                    new QuadConstructor(quadData).draw();
+                } else if (brushType === "quad") {
+                    // Fill extra points with mouse position
+                    if (points.length === 0) {
+                        stroke(brushColor);
+                        strokeWeight(brushSize);
+                        point(mx, my);
+                    } else {
+                        var tempPoints = [];
+                        for (var i = 0; i < points.length; i++) {
+                            tempPoints.push(points[i]);
+                        }
+                        tempPoints.push(new PVector(mx, my));
+                        var quadData = {
+                            points: tempPoints,
+                            fillColour: brushColor,
+                            stroke: ((enableStroke === true || tempPoints.length <= 2) ? true : false),
+                            strokeWeight: (tempPoints.length <= 2 ? 1.0 : brushSize)
+                        };
+                        new QuadConstructor(quadData).draw();
+                    }
                 }
+                strokeWeight(1.0);
+                stroke(0, 0, 0);
+            } else {
+                if (!enableStroke) {
+                    noStroke();
+                }
+                fill(brushColor);
+                if (brushType === "round") {
+                    ellipse(mx, my, brushSize, brushSize);
+                } else if (brushType === "square") {
+                    rect(mx - brushSize / 2, my - brushSize / 2, brushSize, brushSize);
+                }
+                stroke(0, 0, 0);
             }
-            strokeWeight(1.0);
-            stroke(0, 0, 0);
-        } else {
-            if (!enableStroke) {
-                noStroke();
-            }
-            fill(brushColor);
-            if (brushType === "round") {
-                ellipse(mx, my, brushSize, brushSize);
-            } else if (brushType === "square") {
-                rect(mx - brushSize / 2, my - brushSize / 2, brushSize, brushSize);
-            }
-            stroke(0, 0, 0);
         }
     } else {
         fill(0, 0, 0);
@@ -722,7 +724,8 @@ var draw = function() {
         text("Shift + C: Clear canvas", 40, 200);
     }
 
-
+    strokeWeight(1.0);
+    stroke(0, 0, 0);
     fill(255, 255, 255);
     // Colour selector
     line(30, 375, 130, 375);
@@ -1009,6 +1012,42 @@ keyTyped = function() {
         points = [];
         undoneDrawings = [];
         undonePoints = [];
+    } else if ((key.toString() === 'M' || key.toString() === 'm') && shiftPressed === true && help === false) {
+        drawings = [];
+        points = [];
+        undoneDrawings = [];
+        undonePoints = [];
+        drawings.push(new QuadConstructor({
+            points: [new PVector(271, 98), new PVector(320, 238), new PVector(117, 254)],
+            fillColour: -6893213,
+            stroke: false,
+            strokeWeight: 10
+        }));
+        drawings.push(new QuadConstructor({
+            points: [new PVector(66, 321), new PVector(219, 321), new PVector(139, 154)],
+            fillColour: 1888932195,
+            stroke: false,
+            strokeWeight: 10
+        }));
+        drawings.push(new QuadConstructor({
+            points: [new PVector(357, 284), new PVector(266, 326), new PVector(168, 96)],
+            fillColour: 1879048291,
+            stroke: false,
+            strokeWeight: 10
+        }));
+        drawings.push(new QuadConstructor({
+            points: [new PVector(68, 166), new PVector(74, 329), new PVector(361, 170)],
+            fillColour: 1895759971,
+            stroke: false,
+            strokeWeight: 10
+        }));
+        drawings.push(new QuadConstructor({
+            points: [new PVector(130, 73), new PVector(309, 73), new PVector(204, 337)],
+            fillColour: 1895807587,
+            stroke: false,
+            strokeWeight: 10
+        }));
+        hideCursor = true;
     }
 };
 
