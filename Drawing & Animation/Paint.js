@@ -1,7 +1,9 @@
 // https://www.khanacademy.org/computer-programming/paint-app/5833968965697536
-frameRate(9e+18);
+frameRate(9e+18); // Set the framerate to a very high number to make drawing faster.
+// The maximum framerate isn't listed but it is between 60-120 fps.
 
 
+// Define start variables
 var drawings = [];
 var clearedCanvases = [];
 var undoneDrawings = [];
@@ -13,13 +15,17 @@ var temporaryPoints = [];
 var buttons = [];
 var tooltips = [];
 
+
+// Define starting values for drawing related variables
 var r = 0;
 var g = 209;
 var b = 207;
 var a = 86.7;
+var brushColor = color(r, g, b, a);
 var brushSize = 10;
 var brushType = "round";
 var enableStroke = false;
+
 
 var allowDrawing = false;
 var shiftPressed = false;
@@ -29,15 +35,12 @@ var help = false;
 var hideCursor = false;
 
 
-var brushColor = color(r, g, b, a);
-
-
+// Define slider variables
 var enableRedSlider = false;
 var enableGreenSlider = false;
 var enableBlueSlider = false;
 var enableAlphaSlider = false;
 var enableBrushSizeSlider = false;
-
 
 var redSliderX = round(map(r, 0, 255, 30, 130)); // min 30 max 130
 var greenSliderX = round(map(g, 0, 255, 150, 250)); // min 150 max 250
@@ -45,6 +48,8 @@ var blueSliderX = round(map(b, 0, 255, 270, 370)); // min 270 max 370
 var alphaSliderY = round(map(a, 0, 255, 260, 360)); // min 260 max 360
 var brushSizeSliderX = round(map(brushSize, 1, 50, 30, 130)); // min 30 max 130
 
+
+// Define mouse variables
 var mx = 200;
 var my = 200;
 var cached_mx_value = 200;
@@ -53,7 +58,7 @@ var mx_cached = false;
 var my_cached = false;
 
 
-
+// Define the drawing class (Only used for square and circular brushes)
 var Drawing = function(config) {
     this.x = config.x;
     this.y = config.y;
@@ -65,6 +70,7 @@ var Drawing = function(config) {
     this.points = config.points || [];
 };
 
+// Display the drawing
 Drawing.prototype.draw = function() {
     if (this.stroke === true) {
         stroke(this.strokeColour);
@@ -79,12 +85,15 @@ Drawing.prototype.draw = function() {
     }
 };
 
+
+// Define the point class
 var Point = function(config) {
     this.x = config.x;
     this.y = config.y;
     this.size = config.size;
 };
 
+// Draw the point
 Point.prototype.draw = function() {
     fill(brushColor);
     stroke(brushColor);
@@ -93,6 +102,8 @@ Point.prototype.draw = function() {
     ellipse(this.x, this.y, brushSize, brushSize);
 };
 
+
+// Define the line class
 var LineConstructor = function(config) {
     this.x1 = config.x1;
     this.y1 = config.y1;
@@ -102,6 +113,7 @@ var LineConstructor = function(config) {
     this.colour = config.colour;
 };
 
+// Draw the line
 LineConstructor.prototype.draw = function() {
     strokeWeight(this.size);
     stroke(this.colour);
@@ -110,6 +122,7 @@ LineConstructor.prototype.draw = function() {
 };
 
 
+// Define the custom shape class
 var QuadConstructor = function(config) {
     this.points = config.points;
     this.fillColour = config.fillColour;
@@ -117,11 +130,13 @@ var QuadConstructor = function(config) {
     this.strokeWeight = config.strokeWeight || 1.0;
 };
 
+// Draw the custom shape
 QuadConstructor.prototype.draw = function() {
     if (this.stroke === true) {
         stroke(0, 0, 0);
     } else if (this.stroke === false) {
         noStroke();
+        // If there are two or less points, temporarily force enable the stroke.
         if (this.points.length <= 2) {
             stroke(this.fillColour);
         }
@@ -162,10 +177,10 @@ var Tooltip = function(config) {
     this.hoverTime = config.hoverTime || 550; // time in milliseconds before the tooltip appears
     this.hovering = false;
     this.hoverStart = 0; // millis() value when the mouse started hovering over the tooltip
-    this.preview = config.preview || false; // debug option to preview the tooltip
 };
 
 Tooltip.prototype.isHovering = function() {
+    // If the mouse is hovering over the tooltip, set the hover start time and return true.
     if (mouseX >= this.x && mouseX <= this.x + this.width && mouseY >= this.y && mouseY <= this.y + this.height) {
         if (this.hovering === false) {
             this.hoverStart = millis();
@@ -173,28 +188,34 @@ Tooltip.prototype.isHovering = function() {
         }
         return true;
     } else {
+        // If the mouse is not hovering over the tooltip, reset the hover start time and return false.
         this.hovering = false;
         this.hoverStart = 0;
         return false;
     }
 };
 
-
+// Draw the tooltip
 Tooltip.prototype.drawTooltip = function() {
+    // Check if the mouse has been hovering for sufficient time
     if (millis() - this.hoverStart >= this.hoverTime && this.hoverStart !== 0) {
+        // Draw the tooltip
         fill(this.backgroundColour);
         stroke(this.outlineColour);
         strokeWeight(this.outlineWeight);
-        // rect(this.x + this.boxOffsetX, this.y + this.boxOffsetY, this.textBoxWidth, this.textBoxHeight, this.bevel);
+
+        // Prevent the tooltip from going off the right side of the screen
         var constrainedX = mouseX;
         if (mouseX + this.boxOffsetX + this.textBoxWidth >= 400) {
             constrainedX = mouseX - ((mouseX + this.boxOffsetX + this.textBoxWidth) - (400 - this.outlineWeight));
         }
+        // Draw the tooltip box
         rect(constrainedX + this.boxOffsetX, mouseY + this.boxOffsetY, this.textBoxWidth, this.textBoxHeight, this.bevel);
         fill(this.textColour);
         textFont(this.textFont);
         textSize(this.textSize);
-        // text(this.text, this.x + this.boxOffsetX + 5 + this.textOffsetX, this.y + this.boxOffsetY + 15 + this.textOffsetY);
+
+        // Draw the tooltip text, including the slider value if applicable
         if (this.monitorSlider === "none") {
             text(this.text, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, mouseY + 15 + this.textOffsetY + this.boxOffsetY);
         } else if (this.monitorSlider === "red") {
@@ -215,47 +236,9 @@ Tooltip.prototype.drawTooltip = function() {
             text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, mouseY + 15 + this.textOffsetY + this.boxOffsetY);
         }
     }
-    if (this.preview === true) {
-        var constrainedX1 = mouseX;
-        if (mouseX + this.boxOffsetX + this.textBoxWidth >= 400) {
-            constrainedX1 = mouseX - ((mouseX + this.boxOffsetX + this.textBoxWidth) - (400 - this.outlineWeight));
-        }
-        var constrainedX = constrain(constrainedX1, 55, 365);
-        var constrainedY = constrain(mouseY, 61, 333);
-        fill(this.backgroundColour);
-        stroke(this.outlineColour);
-        strokeWeight(this.outlineWeight);
-        // rect(this.x + this.boxOffsetX, this.y + this.boxOffsetY, this.textBoxWidth, this.textBoxHeight, this.bevel);
-        rect(constrainedX + this.boxOffsetX, constrainedY + this.boxOffsetY, this.textBoxWidth, this.textBoxHeight, this.bevel);
-        fill(this.textColour);
-        textFont(this.textFont);
-        textSize(this.textSize);
-        // text(this.text, this.x + this.boxOffsetX + 5 + this.textOffsetX, this.y + this.boxOffsetY + 15 + this.textOffsetY);
-        if (this.monitorSlider === "none") {
-            text(this.text, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
-        } else if (this.monitorSlider === "red") {
-            var tooltipText = "Red: " + r.toString();
-            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
-        } else if (this.monitorSlider === "green") {
-            var tooltipText = "Green: " + g.toString();
-            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
-        } else if (this.monitorSlider === "blue") {
-            var tooltipText = "Blue: " + b.toString();
-            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
-        } else if (this.monitorSlider === "alpha") {
-            var mappedAlpha = map(a, 0, 255, 0, 100);
-            var tooltipText = "Opacity: " + round(mappedAlpha).toString() + "%";
-            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
-        } else if (this.monitorSlider === "brushSize") {
-            var tooltipText = "Brush Size: " + brushSize.toString();
-            text(tooltipText, constrainedX + 5 + this.textOffsetX + this.boxOffsetX, constrainedY + 15 + this.textOffsetY + this.boxOffsetY);
-        }
-
-        fill(88, 0, 0, 200);
-        rect(this.x, this.y, this.width, this.height);
-    }
 };
 
+// Create tooltips and add them to the tooltip array.
 var redSliderTooltip = new Tooltip({
     x: 26,
     y: 365,
@@ -267,7 +250,6 @@ var redSliderTooltip = new Tooltip({
     boxOffsetX: 0,
     boxOffsetY: -26,
     textBoxWidth: 59,
-    preview: false,
 });
 tooltips.push(redSliderTooltip);
 
@@ -282,7 +264,6 @@ var greenSliderTooltip = new Tooltip({
     boxOffsetX: 0,
     boxOffsetY: -26,
     textBoxWidth: 71,
-    preview: false,
 });
 tooltips.push(greenSliderTooltip);
 
@@ -297,7 +278,6 @@ var blueSliderTooltip = new Tooltip({
     boxOffsetX: 0,
     boxOffsetY: -26,
     textBoxWidth: 61,
-    preview: false,
 });
 tooltips.push(blueSliderTooltip);
 
@@ -315,7 +295,6 @@ var alphaSliderTooltip = new Tooltip({
     textBoxHeight: 20,
     textOffsetX: 0,
     textOffsetY: 0,
-    preview: false,
 });
 tooltips.push(alphaSliderTooltip);
 
@@ -332,7 +311,6 @@ var colourPickerPreviewTooltip = new Tooltip({
     textBoxHeight: 16,
     textOffsetX: 0,
     textOffsetY: -2,
-    preview: false,
 });
 tooltips.push(colourPickerPreviewTooltip);
 
@@ -347,7 +325,6 @@ var brushSizeSliderTooltip = new Tooltip({
     boxOffsetX: 0,
     boxOffsetY: 16,
     textBoxWidth: 87,
-    preview: false,
 });
 tooltips.push(brushSizeSliderTooltip);
 
@@ -362,7 +339,6 @@ var strokeButtonTooltip = new Tooltip({
     boxOffsetY: 16,
     textBoxWidth: 47,
     textOffsetY: -2,
-    preview: false,
 });
 tooltips.push(strokeButtonTooltip);
 
@@ -377,7 +353,6 @@ var customShapeTooltip = new Tooltip({
     boxOffsetY: 16,
     textBoxWidth: 88,
     textOffsetY: -1,
-    preview: false,
 });
 tooltips.push(customShapeTooltip);
 
@@ -392,7 +367,6 @@ var lineBrushTooltip = new Tooltip({
     boxOffsetY: 16,
     textBoxWidth: 57,
     textOffsetY: -2,
-    preview: false,
 });
 tooltips.push(lineBrushTooltip);
 
@@ -407,7 +381,6 @@ var ellipseBrushTooltip = new Tooltip({
     boxOffsetY: 16,
     textBoxWidth: 78,
     textOffsetY: -2,
-    preview: false,
 });
 tooltips.push(ellipseBrushTooltip);
 
@@ -422,7 +395,6 @@ var squareBrushTooltip = new Tooltip({
     boxOffsetY: 16,
     textBoxWidth: 82,
     textOffsetY: -2,
-    preview: false,
 });
 tooltips.push(squareBrushTooltip);
 
@@ -437,10 +409,11 @@ var helpButtonTooltip = new Tooltip({
     boxOffsetY: 16,
     textBoxWidth: 34,
     textOffsetY: -2,
-    preview: false,
     bevel: 5,
 });
 tooltips.push(helpButtonTooltip);
+// End of tooltips
+
 
 // Define button class
 var Button = function(config) {
@@ -780,7 +753,6 @@ var draw = function() {
     ellipse(brushSizeSliderX, 18, 5, 5);
 
 
-
     // Iterate through button list and draw all buttons.
     for (var i = 0; i < buttons.length; i++) {
         buttons[i].updateFill();
@@ -833,6 +805,7 @@ mousePressed = function() {
     }
 };
 
+
 mouseDragged = function() {
     // If the mouse is dragged on an enabled slider, update the slider position and corresponding value.
     if (enableRedSlider) {
@@ -884,6 +857,7 @@ mouseDragged = function() {
     brushSize = round(map(brushSizeSliderX, 30, 130, 1, 50));
     brushColor = color(r, g, b, a);
 };
+
 
 mouseReleased = function() {
     // When the mouse is released, disable all sliders, clear the currentDrawing array, and disable drawing.
@@ -959,6 +933,7 @@ mouseClicked = function() {
     }
 };
 
+
 keyPressed = function() {
     if (keyCode === SHIFT) {
         // If the shift key is pressed, enable the shiftPressed variable and cache the current mouse Y position.
@@ -977,6 +952,7 @@ keyPressed = function() {
     }
 };
 
+
 keyReleased = function() {
     // When either the shift or control keys are released, reset the cached mouse X and Y positions and disable the shiftPressed and ctrlPressed variables.
     if (keyCode === SHIFT) {
@@ -987,6 +963,7 @@ keyReleased = function() {
         mx_cached = false;
     }
 };
+
 
 keyTyped = function() {
     if (key.toString() === '=') {
@@ -1116,6 +1093,7 @@ keyTyped = function() {
         hideCursor = true;
     }
 };
+
 
 mouseMoved = function() {
     // Every time the mouse is moved, iterate through all tooltips and check if the mouse is hovering over them.
