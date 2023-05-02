@@ -136,6 +136,7 @@ QuadConstructor.prototype.draw = function() {
 };
 
 
+// Define the tooltip class
 var Tooltip = function(config) {
     this.x = config.x;
     this.y = config.y;
@@ -146,7 +147,7 @@ var Tooltip = function(config) {
     this.textBoxWidth = config.textBoxWidth || config.width;
     this.textBoxHeight = config.textBoxHeight || config.height;
     this.text = config.text;
-    this.monitorSlider = config.monitorSlider || "none";
+    this.monitorSlider = config.monitorSlider || "none"; // The slider value to appear in the tooltip
     this.textOffsetX = config.textOffsetX || 0;
     this.textOffsetY = config.textOffsetY || 0;
     this.backgroundColour = config.backgroundColour || color(88, 88, 88, 200);
@@ -156,13 +157,12 @@ var Tooltip = function(config) {
     this.outline = config.outline;
     this.outlineColour = config.outlineColour || color(0, 0, 0);
     this.outlineWeight = config.outlineWeight || 1.0;
-    this.bevel = config.bevel || 0;
-    this.onHover = config.onHover || function() {};
-    this.hoverTime = config.hoverTime || 1000;
+    this.bevel = config.bevel || 6;
+    this.onHover = config.onHover || function() {}; // function to run when hovering over the tooltip
+    this.hoverTime = config.hoverTime || 550; // time in milliseconds before the tooltip appears
     this.hovering = false;
-    this.hoverStart = 0;
-    this.preview = config.preview || false;
-    this.drawOverHelp = config.drawOverHelp || false;
+    this.hoverStart = 0; // millis() value when the mouse started hovering over the tooltip
+    this.preview = config.preview || false; // debug option to preview the tooltip
 };
 
 Tooltip.prototype.isHovering = function() {
@@ -328,7 +328,7 @@ var colourPickerPreviewTooltip = new Tooltip({
     hoverTime: 500,
     boxOffsetX: 0,
     boxOffsetY: -26,
-    textBoxWidth: 134,
+    textBoxWidth: 138,
     textBoxHeight: 16,
     textOffsetX: 0,
     textOffsetY: -2,
@@ -438,10 +438,11 @@ var helpButtonTooltip = new Tooltip({
     textBoxWidth: 34,
     textOffsetY: -2,
     preview: false,
+    bevel: 5,
 });
 tooltips.push(helpButtonTooltip);
 
-
+// Define button class
 var Button = function(config) {
     this.x = config.x || 50;
     this.y = config.y || 50;
@@ -455,10 +456,11 @@ var Button = function(config) {
     this.strokeWeight = config.strokeWeight || 1.0;
     this.bevel = config.bevel || 0;
     this.onClick = config.onClick || function() {};
-    this.updateFill = config.updateFill || function() {};
+    this.updateFill = config.updateFill || function() {}; // updateFill is used to draw a background for the button, indicating that the button is active.
 };
 
 Button.prototype.draw = function() {
+    // Draw button
     if (this.fill === true) {
         fill(this.fillColour);
     } else if (this.fill === false) {
@@ -481,6 +483,7 @@ Button.prototype.draw = function() {
 };
 
 Button.prototype.isMouseInside = function() {
+    // Check if the mouse is inside the button
     return (mouseX >= this.x &&
         mouseX <= (this.x + this.width) &&
         mouseY >= this.y &&
@@ -488,6 +491,7 @@ Button.prototype.isMouseInside = function() {
 };
 
 Button.prototype.handleMouseClick = function() {
+    // Handle mouse click
     if (this.isMouseInside()) {
         this.onClick();
         this.updateFill();
@@ -500,6 +504,7 @@ Button.prototype.updateFill = function() {
     this.updateFill();
 };
 
+// Define buttons and add them to the buttons array
 var squareBrushData = {
     x: 366,
     y: 12,
@@ -619,9 +624,10 @@ var helpButtonData = {
     }
 };
 buttons.push(new Button(helpButtonData));
+// End of buttons
 
 
-var mouseInCanvas = function() {
+var mouseInCanvas = function() { // Check if mouse is in canvas
     return (mouseX > 30 && mouseX < 390 && mouseY > 36 && mouseY < 358);
 };
 
@@ -809,6 +815,7 @@ var draw = function() {
 
 
 mousePressed = function() {
+    // Check if mouse is down on a slider handle, if it is, enable that slider.
     if (mouseX < redSliderX + 5 && mouseX > redSliderX - 5 && mouseY < 380 && mouseY > 370) {
         enableRedSlider = true;
     } else if (mouseX < greenSliderX + 5 && mouseX > greenSliderX - 5 && mouseY < 380 && mouseY > 370) {
@@ -820,11 +827,14 @@ mousePressed = function() {
     } else if (mouseX < brushSizeSliderX + 5 && mouseX > brushSizeSliderX - 5 && mouseY < 23 && mouseY > 13) {
         enableBrushSizeSlider = true;
     } else if (mouseInCanvas()) {
+        // If the mouse is originally pressed down inside the canvas, the allowDrawing variable is set to true.
+        // This allows the user to drag the mouse outside of the canvas whilst still drawing inside of it.
         allowDrawing = true;
     }
 };
 
 mouseDragged = function() {
+    // If the mouse is dragged on an enabled slider, update the slider position and corresponding value.
     if (enableRedSlider) {
         redSliderX = constrain(mouseX, 30, 130);
     } else if (enableGreenSlider) {
@@ -836,9 +846,12 @@ mouseDragged = function() {
     } else if (enableBrushSizeSlider) {
         brushSizeSliderX = constrain(mouseX, 30, 130);
     } else if ((mouseInCanvas() || allowDrawing) && help === false) {
+        // If the mouse is dragged inside the canvas, draw a new brush stroke.
         if (drawings[drawings.length - 1] === currentDrawing) {
+            // If the current drawing is identical to the latest drawing in the drawings array, update it.
             drawings.pop();
         }
+        // Create drawing object and add it to the current drawing array.
         if (brushType === "round") {
             var drawingData = {
                 x: mx,
@@ -863,7 +876,7 @@ mouseDragged = function() {
         drawings.push(currentDrawing);
     }
 
-
+    // Update brush colour and size variables based on slider positions.
     r = round(map(redSliderX, 30, 130, 0, 255));
     g = round(map(greenSliderX, 150, 250, 0, 255));
     b = round(map(blueSliderX, 270, 370, 0, 255));
@@ -873,6 +886,7 @@ mouseDragged = function() {
 };
 
 mouseReleased = function() {
+    // When the mouse is released, disable all sliders, clear the currentDrawing array, and disable drawing.
     enableRedSlider = false;
     enableGreenSlider = false;
     enableBlueSlider = false;
@@ -886,14 +900,16 @@ mouseReleased = function() {
 
 
 mouseClicked = function() {
+    // Iterate through all buttons, calling their handleMouseClick function and updateFill function.
     for (var i = 0; i < buttons.length; i++) {
         buttons[i].handleMouseClick();
     }
+    // Iterate through updateFill function last so that the buttons are updated after all have had their clicks checked first.
     for (var i = 0; i < buttons.length; i++) {
         buttons[i].updateFill();
     }
 
-
+    // If the mouse is clicked inside the canvas, draw a new singular stroke.
     if (mouseInCanvas() && help === false) {
         if (brushType === "round") {
             var drawingData = {
@@ -916,6 +932,7 @@ mouseClicked = function() {
             };
             drawings.push(new Drawing(drawingData));
         } else if (brushType === "line") {
+            // If the brush type is line, create a new point object and add it to the points array.
             var pointData = {
                 x: mx,
                 y: my,
@@ -923,6 +940,7 @@ mouseClicked = function() {
             };
             points.push(new Point(pointData));
             if (points.length === 2) {
+                // If the points array has two points in it, create a new line object and add it to the drawings array.
                 var lineData = {
                     x1: points[0].x,
                     y1: points[0].y,
@@ -935,6 +953,7 @@ mouseClicked = function() {
                 points = [];
             }
         } else if (brushType === "quad") {
+            // If the brush type is quad, create a new point object and add it to the points array.
             points.push(new PVector(mx, my));
         }
     }
@@ -942,12 +961,14 @@ mouseClicked = function() {
 
 keyPressed = function() {
     if (keyCode === SHIFT) {
+        // If the shift key is pressed, enable the shiftPressed variable and cache the current mouse Y position.
         shiftPressed = true;
         if (my_cached === false && mouseInCanvas()) {
             cached_my_value = mouseY;
             my_cached = true;
         }
     } else if (keyCode === CONTROL) {
+        // If the control key is pressed, enable the ctrlPressed variable and cache the current mouse X position.
         ctrlPressed = true;
         if (mx_cached === false && mouseInCanvas()) {
             cached_mx_value = mouseX;
@@ -957,6 +978,7 @@ keyPressed = function() {
 };
 
 keyReleased = function() {
+    // When either the shift or control keys are released, reset the cached mouse X and Y positions and disable the shiftPressed and ctrlPressed variables.
     if (keyCode === SHIFT) {
         shiftPressed = false;
         my_cached = false;
@@ -968,22 +990,26 @@ keyReleased = function() {
 
 keyTyped = function() {
     if (key.toString() === '=') {
-        // Increase brush size
+        // Increase brush size when the +/= key is pressed.
         if (brushSize < 50) {
             brushSize += 1;
-            brushSizeSliderX = (brushSize * 2) + 30;
+            // Update the brushSizeSliderX variable to match the new brush size.
+            brushSizeSliderX = map(brushSize, 1, 50, 30, 130);
         }
     } else if (key.toString() === '-') {
-        // Reduce brush size
+        // Decrease brush size when the -/_ key is pressed.
         if (brushSize > 1) {
             brushSize -= 1;
-            brushSizeSliderX = (brushSize * 2) + 30;
+            // Update the brushSizeSliderX variable to match the new brush size.
+            brushSizeSliderX = map(brushSize, 1, 50, 30, 130);
         }
     } else if ((key.toString() === 'Z' || key.toString() === 'z') && help === false) {
         // Undo
         if (clearedCanvases.length > 0 && drawings.length === 0) {
+            // If the clearedCanvases array has canvases in it, pop the last canvas and push it to the drawings array.
             drawings = clearedCanvases.pop();
         } else if (brushType === "quad") {
+            // If the brush type is quad, undo the last point in the points array.
             if (points.length > 0) {
                 undonePoints.push(points.pop());
             } else if (drawings.length > 0 && drawings[drawings.length - 1] instanceof QuadConstructor) {
@@ -996,6 +1022,7 @@ keyTyped = function() {
                 undoneDrawings.push(poppedDrawing);
             }
         } else if (drawings.length > 0) {
+            // If the drawings array has drawings in it, pop the last drawing and push it to the undoneDrawings array.
             if (drawings.length > 0 && drawings[drawings.length - 1] instanceof QuadConstructor) {
                 // Undo last point
                 var poppedDrawing = drawings.pop();
@@ -1013,18 +1040,22 @@ keyTyped = function() {
     } else if ((key.toString === 'X' || key.toString() === 'x') && help === false) {
         // Redo
         if (brushType === "quad") {
+            // If the brush type is quad, redo the last point in the undonePoints array.
             if (undonePoints.length > 0) {
                 if (undoneDrawings[undoneDrawings.length - 1] instanceof QuadConstructor) {
-                    // Redo last point
+                    // Redo last drawing
                     drawings.push(undoneDrawings.pop());
                 } else {
+                    // Redo last point
                     points.push(undonePoints.pop());
                 }
             }
         } else if (undoneDrawings.length > 0) {
+            // If the drawing is something other than a quad, redo the last drawing normally.
             drawings.push(undoneDrawings.pop());
         }
     } else if (key.code === 10 && help === false) {
+        // If the enter key is pressed and the brush is set to quad, complete the quad drawing at the current mouse position.
         if (brushType === "quad") {
             points.push(new PVector(mx, my));
             var quadData = {
@@ -1037,13 +1068,17 @@ keyTyped = function() {
             points = [];
         }
     } else if ((key.toString() === 'C' || key.toString() === 'c') && shiftPressed === true && help === false) {
-        // Clear Canvas
+        // Clear the canvas when the user presses Shift+C.
+        // Add the current drawings to the clearedCanvases array and reset the drawings and points arrays.
         clearedCanvases.push(drawings);
         drawings = [];
         points = [];
         undoneDrawings = [];
         undonePoints = [];
     } else if ((key.toString() === 'M' || key.toString() === 'm') && shiftPressed === true && help === false) {
+        // Enable preview mode when the user presses Shift+M.
+        // This will clear all drawings and import a preset abstract drawing, then disable the cursor.
+        // This is used to save time when creating the preview image for the project.
         drawings = [];
         points = [];
         undoneDrawings = [];
@@ -1083,6 +1118,7 @@ keyTyped = function() {
 };
 
 mouseMoved = function() {
+    // Every time the mouse is moved, iterate through all tooltips and check if the mouse is hovering over them.
     for (var i = 0; i < tooltips.length; i++) {
         tooltips[i].isHovering();
     }
