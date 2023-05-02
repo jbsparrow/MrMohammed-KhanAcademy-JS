@@ -641,7 +641,7 @@ var draw = function() {
 
     if (help === false) {
         for (var i = 0; i < drawings.length; i++) {
-            // Check if drawing is of type Drawing or Array
+            // Iterate through drawings array and draw each item.
             if (drawings[i] instanceof Drawing) {
                 drawings[i].draw();
             } else if (drawings[i] instanceof LineConstructor || drawings[i] instanceof QuadConstructor) {
@@ -653,6 +653,7 @@ var draw = function() {
             }
         }
         // Draw cursor
+        // Use cached values if shift or ctrl is pressed to restrict mouse movement to only one axis
         if (shiftPressed === true) {
             mx = constrain(mouseX, 30, 390);
             my = cached_my_value;
@@ -664,45 +665,50 @@ var draw = function() {
             my = constrain(mouseY, 36, 358);
         }
 
-        if (hideCursor === false) {
+        if (hideCursor === false) { // hideCursor is only true if the program is in preview mode (Shift+M)
             if (pointMode === true) {
                 if (brushType === "line") {
+                    // Draw line preview from first point to mouse position
                     strokeWeight(brushSize);
                     stroke(brushColor);
                     fill(brushColor);
-                    if (points.length === 0) {
+                    if (points.length === 0) { // If no points, draw a point at mouse position
                         line(mx, my, mx, my);
                     } else if (points.length === 1) {
                         line(points[0].x, points[0].y, mx, my);
                     }
                 } else if (brushType === "quad") {
-                    // Fill extra points with mouse position
-                    if (points.length === 0) {
+                    // Draw quad preview
+                    if (points.length === 0) { // Draw a point at mouse position if no points exist
                         stroke(brushColor);
                         strokeWeight(brushSize);
                         point(mx, my);
                     } else {
+                        // Create a temporary array to store the points array and add the mouse position to it
                         var tempPoints = [];
                         for (var i = 0; i < points.length; i++) {
                             tempPoints.push(points[i]);
                         }
                         tempPoints.push(new PVector(mx, my));
+                        // Create a new QuadConstructor object and draw it
                         var quadData = {
                             points: tempPoints,
                             fillColour: brushColor,
+                            // Temporarily enable stroke if there is two or less points so that the user can see what they are drawing.
                             stroke: ((enableStroke === true || tempPoints.length <= 2) ? true : false),
-                            strokeWeight: (tempPoints.length <= 2 ? 1.0 : brushSize)
+                            strokeWeight: (tempPoints.length <= 2 ? 3.0 : brushSize)
                         };
                         new QuadConstructor(quadData).draw();
                     }
                 }
                 strokeWeight(1.0);
                 stroke(0, 0, 0);
-            } else {
+            } else { // If pointMode is false, draw a simple shape preview for the brush.
                 if (!enableStroke) {
                     noStroke();
                 }
                 fill(brushColor);
+                // Draw the shape that corresponds to the selected brush type.
                 if (brushType === "round") {
                     ellipse(mx, my, brushSize, brushSize);
                 } else if (brushType === "square") {
@@ -722,17 +728,33 @@ var draw = function() {
         text("Shift: Horizontal line", 40, 160);
         text("Ctrl: Vertical line", 40, 180);
         text("Shift + C: Clear canvas", 40, 200);
+        text("+ / -: Increase/Decrease brush size", 40, 220);
     }
 
+
+    // Draw outside of canvas to prevent drawings overlapping the UI
+    noStroke();
+    fill(237, 237, 237);
+    rect(-1, -1, 401, 36);
+    rect(-1, -1, 30, 401);
+    rect(29, 359, 371, 48);
+    rect(391, 35, 9, 401);
+    stroke(0, 0, 0);
+    strokeWeight(2.0);
+    noFill();
+    // Redraw canvas to clarify the border and prevent drawings from overlapping it.
+    rect(30, 36, 360, 322);
+
+    // Draw slider lines
     strokeWeight(1.0);
     stroke(0, 0, 0);
     fill(255, 255, 255);
-    // Colour selector
-    line(30, 375, 130, 375);
-    line(150, 375, 250, 375);
-    line(270, 375, 370, 375);
-    line(12, 360, 12, 260);
+    line(30, 375, 130, 375); // Red Slider Line
+    line(150, 375, 250, 375); // Green Slider Line
+    line(270, 375, 370, 375); // Blue Slider Line
+    line(12, 360, 12, 260); // Alpha/Opacity Slider Line
 
+    // Draw slider handles and fill them corresponding to the colour they control
     fill(255, 0, 0);
     ellipse(redSliderX, 375, 5, 5);
     fill(0, 255, 0);
@@ -742,6 +764,7 @@ var draw = function() {
     fill(255, 255, 255);
     ellipse(12, alphaSliderY, 5, 5);
 
+    // Draw brush colour preview
     fill(brushColor);
     rect(6, 368, 12, 12);
 
@@ -752,29 +775,33 @@ var draw = function() {
 
 
 
-    // Brush selector
+    // Iterate through button list and draw all buttons.
     for (var i = 0; i < buttons.length; i++) {
         buttons[i].updateFill();
         buttons[i].draw();
     }
 
-
+    // Draw drawing mode buttons
     stroke(0, 0, 0);
     fill(brushColor);
-    ellipse(355, 19, 12, 12);
-    rect(367, 13, 12, 12);
+    ellipse(355, 19, 12, 12); // Round brush drawing mode button
+    rect(367, 13, 12, 12); // Square brush drawing mode button
     line(332, 24, 340, 13); // LineConstructor drawing mode button
     quad(304, 25, 309, 13, 319, 13, 324, 25); // Quadrilateral drawing mode button
+
+    // Draw outline button
     fill(255, 255, 255);
     rect(278, 13, 12, 12);
 
-    // Help Button
+
+    // Draw help button
     fill(0, 0, 0);
-    if (help === false) {
+    if (help === false) { // If help is disabled, draw a question mark
         text("?", 10, 23);
     } else {
         text("X", 10, 23);
     }
+    // Iterate through tooltips and draw them. Tooltips are drawn last so that they overlap all other elements.
     for (var i = 0; i < tooltips.length; i++) {
         tooltips[i].drawTooltip();
     }
