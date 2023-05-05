@@ -92,10 +92,9 @@ if (roofMode === 0) {
     var thcx = 0;
     var inc = 360 / 300;
     var iinc = random(0.03, 1.1);
+    var dir = "up";
 
     // Trace the triangle, shooting a line into the center of the triangle every .5 pixels.
-    thcx = 0;
-    var dir = "up";
     for (var i = 0; i < 300; i += iinc) {
         var x = lerp(200, 50, i / 300);
         var y = lerp(28, 150, i / 300);
