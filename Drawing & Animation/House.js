@@ -91,11 +91,12 @@ if (roofMode === 0) {
     colorMode(HSB);
     var thcx = 0;
     var inc = 360 / 300;
+    var iinc = random(0.03, 1.1);
 
     // Trace the triangle, shooting a line into the center of the triangle every .5 pixels.
     thcx = 0;
     var dir = "up";
-    for (var i = 0; i < 300; i += 0.5) {
+    for (var i = 0; i < 300; i += iinc) {
         var x = lerp(200, 50, i / 300);
         var y = lerp(28, 150, i / 300);
         stroke(thcx, 255, 255);
@@ -113,7 +114,7 @@ if (roofMode === 0) {
     }
 
     // Trace another side of the triangle
-    for (var i = 0; i < 300; i += 0.5) {
+    for (var i = 0; i < 300; i += iinc) {
         var x = lerp(200, 350, i / 300);
         var y = lerp(28, 150, i / 300);
         stroke(thcx, 255, 255);
@@ -131,7 +132,7 @@ if (roofMode === 0) {
     }
 
     // Trace the last side of the triangle
-    for (var i = 0; i < 300; i += 0.5) {
+    for (var i = 0; i < 300; i += iinc) {
         var x = lerp(50, 350, i / 300);
         var y = lerp(150, 150, i / 300);
         stroke(thcx, 255, 255);
