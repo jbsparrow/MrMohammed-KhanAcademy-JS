@@ -89,65 +89,39 @@ if (roofMode === 0) {
     }
 } else {
     colorMode(HSB);
+    var points = [
+        { x1: 200, x2: 50, y1: 28, y2: 150 },
+        { x1: 350, x2: 200, y1: 150, y2: 28 },
+        { x1: 50, x2: 350, y1: 150, y2: 150 }
+    ];
     var thcx = 0;
     var inc = 360 / 300;
     var iinc = 0.709; // @ 25fps
     // Formula for framerate is approximately iinc * -14.084 + 35.013
+    // The framerate formula is very sensitive.
     frameRate(-14.084 * iinc + 35.013);
     var dir = "up";
 
     draw = function() {
-        // Trace the triangle, shooting a line into the center of the triangle every .5 pixels.
-        for (var i = 0; i < 300; i += iinc) {
-            var x = lerp(200, 50, i / 300);
-            var y = lerp(28, 150, i / 300);
-            stroke(thcx, 255, 255);
-            line(x, y, 200, 100);
-            if (thcx >= 255 || dir === "down") {
-                dir = "down";
-                thcx -= inc;
-                if (thcx <= 0) {
-                    dir = "up";
+        // Trace the triangle, shooting a line to the center of the screen at each point
+        for (var p = 0; p < points.length; p += 1) {
+            // Iterate through the lines of the triangle, drawing a tracer line to the center of the triangle along each line
+            for (var i = 0; i < 300; i += iinc) {
+                var x = lerp(points[p].x1, points[p].x2, i / 300);
+                var y = lerp(points[p].y1, points[p].y2, i / 300);
+                stroke(thcx, 255, 255);
+                line(x, y, 200, 100);
+                // Change the hue of the tracer line
+                if (thcx >= 255 || dir === "down") {
+                    dir = "down";
+                    thcx -= inc;
+                    if (thcx <= 0) {
+                        dir = "up";
+                        thcx += inc;
+                    }
+                } else if (dir === "up") {
                     thcx += inc;
                 }
-            } else if (dir === "up") {
-                thcx += inc;
-            }
-        }
-
-        // Trace another side of the triangle
-        for (var i = 0; i < 300; i += iinc) {
-            var x = lerp(350, 200, i / 300);
-            var y = lerp(150, 28, i / 300);
-            stroke(thcx, 255, 255);
-            line(x, y, 200, 100);
-            if (thcx >= 255 || dir === "down") {
-                dir = "down";
-                thcx -= inc;
-                if (thcx <= 0) {
-                    dir = "up";
-                    thcx += inc;
-                }
-            } else if (dir === "up") {
-                thcx += inc;
-            }
-        }
-
-        // Trace the last side of the triangle
-        for (var i = 0; i < 300; i += iinc) {
-            var x = lerp(50, 350, i / 300);
-            var y = lerp(150, 150, i / 300);
-            stroke(thcx, 255, 255);
-            line(x, y, 200, 100);
-            if (thcx >= 255 || dir === "down") {
-                dir = "down";
-                thcx -= inc;
-                if (thcx <= 0) {
-                    dir = "up";
-                    thcx += inc;
-                }
-            } else if (dir === "up") {
-                thcx += inc;
             }
         }
     };
