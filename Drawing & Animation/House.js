@@ -92,13 +92,8 @@ if (roofMode === 0) {
     var thcx = 0;
     var inc = 360 / 300;
     var iinc = 0.709; // @ 25fps
-    // var iinc = 1.059 @ 20fps
-    // Q: What is the formula for framerate based on iinc to get a smooth animation?
-    // A: 25fps = 0.709, 20fps = 1.059, 15fps = 1.412, 10fps = 2.118, 5fps = 4.235
-    // A: 60fps = 0.3545
-    // Q: What is the formula to calculate the framerate?
+    // Formula for framerate is approximately iinc * -14.084 + 35.013
     frameRate(-14.084 * iinc + 35.013);
-    // var iinc = random(0.03, 1.1);
     var dir = "up";
 
     draw = function() {
