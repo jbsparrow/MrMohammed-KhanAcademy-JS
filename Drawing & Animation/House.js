@@ -91,60 +91,69 @@ if (roofMode === 0) {
     colorMode(HSB);
     var thcx = 0;
     var inc = 360 / 300;
-    var iinc = random(0.03, 1.1);
+    var iinc = 0.709; // @ 25fps
+    // var iinc = 1.059 @ 20fps
+    // Q: What is the formula for framerate based on iinc to get a smooth animation?
+    // A: 25fps = 0.709, 20fps = 1.059, 15fps = 1.412, 10fps = 2.118, 5fps = 4.235
+    // A: 60fps = 0.3545
+    // Q: What is the formula to calculate the framerate?
+    frameRate(-14.084 * iinc + 35.013);
+    // var iinc = random(0.03, 1.1);
     var dir = "up";
 
-    // Trace the triangle, shooting a line into the center of the triangle every .5 pixels.
-    for (var i = 0; i < 300; i += iinc) {
-        var x = lerp(200, 50, i / 300);
-        var y = lerp(28, 150, i / 300);
-        stroke(thcx, 255, 255);
-        line(x, y, 200, 100);
-        if (thcx >= 255 || dir === "down") {
-            dir = "down";
-            thcx -= inc;
-            if (thcx <= 0) {
-                dir = "up";
+    draw = function() {
+        // Trace the triangle, shooting a line into the center of the triangle every .5 pixels.
+        for (var i = 0; i < 300; i += iinc) {
+            var x = lerp(200, 50, i / 300);
+            var y = lerp(28, 150, i / 300);
+            stroke(thcx, 255, 255);
+            line(x, y, 200, 100);
+            if (thcx >= 255 || dir === "down") {
+                dir = "down";
+                thcx -= inc;
+                if (thcx <= 0) {
+                    dir = "up";
+                    thcx += inc;
+                }
+            } else if (dir === "up") {
                 thcx += inc;
             }
-        } else if (dir === "up") {
-            thcx += inc;
         }
-    }
 
-    // Trace another side of the triangle
-    for (var i = 0; i < 300; i += iinc) {
-        var x = lerp(200, 350, i / 300);
-        var y = lerp(28, 150, i / 300);
-        stroke(thcx, 255, 255);
-        line(x, y, 200, 100);
-        if (thcx >= 255 || dir === "down") {
-            dir = "down";
-            thcx -= inc;
-            if (thcx <= 0) {
-                dir = "up";
+        // Trace another side of the triangle
+        for (var i = 0; i < 300; i += iinc) {
+            var x = lerp(350, 200, i / 300);
+            var y = lerp(150, 28, i / 300);
+            stroke(thcx, 255, 255);
+            line(x, y, 200, 100);
+            if (thcx >= 255 || dir === "down") {
+                dir = "down";
+                thcx -= inc;
+                if (thcx <= 0) {
+                    dir = "up";
+                    thcx += inc;
+                }
+            } else if (dir === "up") {
                 thcx += inc;
             }
-        } else if (dir === "up") {
-            thcx += inc;
         }
-    }
 
-    // Trace the last side of the triangle
-    for (var i = 0; i < 300; i += iinc) {
-        var x = lerp(50, 350, i / 300);
-        var y = lerp(150, 150, i / 300);
-        stroke(thcx, 255, 255);
-        line(x, y, 200, 100);
-        if (thcx >= 255 || dir === "down") {
-            dir = "down";
-            thcx -= inc;
-            if (thcx <= 0) {
-                dir = "up";
+        // Trace the last side of the triangle
+        for (var i = 0; i < 300; i += iinc) {
+            var x = lerp(50, 350, i / 300);
+            var y = lerp(150, 150, i / 300);
+            stroke(thcx, 255, 255);
+            line(x, y, 200, 100);
+            if (thcx >= 255 || dir === "down") {
+                dir = "down";
+                thcx -= inc;
+                if (thcx <= 0) {
+                    dir = "up";
+                    thcx += inc;
+                }
+            } else if (dir === "up") {
                 thcx += inc;
             }
-        } else if (dir === "up") {
-            thcx += inc;
         }
-    }
+    };
 }
