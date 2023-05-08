@@ -1,12 +1,3 @@
-// Think about your house, apartment, school, or office building. There's a lot of repeating elements - especially on the outside. In this project, you'll use loops to add repeating elements to this house. Suggested steps:
-
-//     Draw a window, then use a for loop to draw a row of windows (or, use nested for loops to make multiple rows of windows).
-//     Draw a row of grass in front. And maybe some bushes or flowers?
-//     The house is a plain color now. Use loops to make it a brick house or a house with "siding" or a log cabin. Check the images library for ways to make that more realistic.
-//     Bonus: Use a conditional inside a for loop to make more interesting grass or walls, using a different color for every other iteration of the loop (hint: use the % operator).
-
-// Keep going! What else could you draw with loops?
-
 background(219, 255, 255);
 
 // Roof
