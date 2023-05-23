@@ -15,8 +15,6 @@ var raindrop = function(config) {
     this.size = config.size;
 };
 
-raindrops.push(new raindrop({ x: 100, y: 100, fillColour: color(0, 217, 255), speed: 5, size: 10 }));
-
 
 raindrop.prototype.draw = function() {
     beginShape();
@@ -40,7 +38,7 @@ var generateRaindrop = function() {
     raindrops.push(new raindrop(drop));
 };
 
-for (var i = 0; i < 9; i++) {
+for (var i = 0; i < 500; i++) {
     generateRaindrop();
 }
 
@@ -52,13 +50,24 @@ draw = function() {
 
 
     for (var i = 0; i < raindrops.length; i++) {
-        if (raindrops[i].y > 400) {
+        if (raindrops[i].y > height) {
             // remove raindrop
             raindrops.splice(i, 1);
             // generate new raindrop
             generateRaindrop();
+            // 5% chance to generate an extra raindrop
+            if (raindrops.length < 1000 && random(0, 1) < 0.05) {
+                generateRaindrop();
+            }
         }
         raindrops[i].draw();
     }
 
+    fill(0, 0, 0);
+    text("Raindrops: " + raindrops.length, 10, 20);
+};
+
+mouseClicked = function() {
+    // truncate raindrops array to 500
+    raindrops = raindrops.slice(0, 500);
 };
