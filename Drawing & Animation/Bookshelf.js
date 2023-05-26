@@ -3,10 +3,16 @@ background(135, 64, 13);
 var shelves = [];
 var books = [];
 
-var ebook = {
-    title: "I Know Why the Caged Bird Sings",
-    stars: 4
-};
+// Create a list of info for 100 books.
+var bookDataPool = [
+    { Title: "The Giver", Author: "Lois Lowry", Stars: 4, Orientation: "display" },
+    { Title: "The Hobbit", Author: "J.R.R. Tolkien", Stars: 5, Orientation: "display" },
+    { Title: "The Hunger Games", Author: "Suzanne Collins", Stars: 4, Orientation: "display" },
+    { Title: "The Maze Runner", Author: "James Dashner", Stars: 4, Orientation: "display" },
+    { Title: "The Fault in Our Stars", Author: "John Green", Stars: 5, Orientation: "display" },
+    { Title: "The Book Thief", Author: "Markus Zusak", Stars: 5, Orientation: "display" },
+    { Title: "Wuthering Heights", Author: "Emily Brontë", Stars: 4, Orientation: "display" },
+];
 
 
 var Shelf = function(config) {
@@ -17,6 +23,7 @@ var Shelf = function(config) {
     this.orientation = config.orientation; // "display" or "spine"
     this.positions = (this.orientation === "display") ? [5, 105, 205, 305, 405, 505] : [2, 32, 62, 92, 122, 152, 182, 212, 242, 272, 302, 332, 362, 392, 422, 452, 482, 512, 542, 572];
     this.books = 0;
+    this.maxBooks = this.positions.length;
 };
 
 Shelf.prototype.draw = function() {
@@ -68,21 +75,19 @@ for (var i = 0; i < 6; i++) {
 }
 
 // draw one book
-fill(214, 255, 219);
-rect(10, 20, 90, 100);
-fill(0, 0, 0);
-text(ebook.title, 15, 29, 70, 100);
-for (var i = 0; i < ebook.stars; i++) {
-    image(getImage("cute/Star"), 13 + i * 20, 90, 20, 30);
-}
+// fill(214, 255, 219);
+// rect(10, 20, 90, 100);
+// fill(0, 0, 0);
+// text(ebook.title, 15, 29, 70, 100);
+// for (var i = 0; i < ebook.stars; i++) {
+//     image(getImage("cute/Star"), 13 + i * 20, 90, 20, 30);
+// }
 
 for (var i = 0; i < shelves.length; i++) {
     shelves[i].draw();
 }
 
 var Book = function(config) {
-    this.width = config.width;
-    this.height = config.height;
     this.colour = config.colour;
     this.title = config.title;
     this.author = config.author;
@@ -90,35 +95,84 @@ var Book = function(config) {
     this.orientation = config.orientation; // "display" or "spine"
     this.shelf = null; // Which shelf to draw the book on. There are 6 shelves. 0 is topmost.
     this.position = null; // position on shelf. Each shelf has 6 positions if in "display" mode. 0 is leftmost. Each shelf has 12 positions if in "spine" mode. 0 is leftmost.
+    this.width = config.width || (config.orientation === "display") ? 90 : 25;
+    this.height = config.height || 100;
 };
 
 Book.prototype.draw = function() {
     fill(this.colour);
     if (this.orientation === "display") {
-        rect(10 + this.position * 100, 20 + this.shelf * 120, this.width, this.height);
+        for (var i = 0; i < shelves.length; i++) {
+            if (shelves[i].orientation === this.orientation && shelves[i].books < shelves[i].maxBooks) {
+                this.shelf = i;
+                this.position = shelves[i].books;
+                shelves[i].books++;
+                break;
+            }
+        }
+        rect(shelves[this.shelf].positions[this.position], shelves[this.shelf].y + 20, this.width, this.height);
         fill(0, 0, 0);
-        text(this.title, 15 + this.position * 100, 29 + this.shelf * 120, 70, 100);
+        text(this.title + "\n\n" + this.author, shelves[this.shelf].positions[this.position] + 5, shelves[this.shelf].y + 20, this.width - 10, this.height - 10);
         for (var i = 0; i < this.rating; i++) {
-            text("★", 13 + this.position * 100 + i * 20, 90 + this.shelf * 120, 20, 30);
+            text("⭐", shelves[this.shelf].positions[this.position] + 5, shelves[this.shelf].y + 90);
         }
     } else if (this.orientation === "spine") {
-        rect(10 + this.position * 20, 20 + this.shelf * 120, this.width, this.height);
-        fill(0, 0, 0);
-        text(this.title, 15 + this.position * 20, 29 + this.shelf * 120, 70, 100);
-        for (var i = 0; i < this.rating; i++) {
-            text("★", 13 + this.position * 20 + i * 20, 90 + this.shelf * 120, 20, 30);
+        this.width = 25;
+        for (var i = 0; i < shelves.length; i++) {
+            if (shelves[i].orientation === this.orientation && shelves[i].books < shelves[i].maxBooks) {
+                this.shelf = i;
+                this.position = shelves[i].books;
+                shelves[i].books++;
+                break;
+            }
+        }
+        if (this.shelf === 4) { // Make a slightly shorter book
+            rect(shelves[this.shelf].positions[this.position], shelves[this.shelf].y + 15, this.width, 94);
+        } else {
+            rect(shelves[this.shelf].positions[this.position], shelves[this.shelf].y + 20, this.width, this.height);
         }
     }
 };
 
-var w = new Book({
-    width: 90,
-    height: 100,
-    colour: color(214, 255, 219),
-    title: "Wuthering Heights",
-    author: "Emily Brontë",
-    rating: 4,
-    orientation: "display",
-});
+var fetchBook = function() {
+    // Fetch random book from `bookDataPool` array and remove it from the array, returning the book.
+    if (bookDataPool.length > 0) {
+        var index = floor(random(0, bookDataPool.length));
+        var book = bookDataPool[index];
+        bookDataPool.splice(index, 1);
+        return book;
+    } else {
+        return { Title: "No more books", Author: "No more books", Rating: 0 };
+    }
+};
 
-w.draw();
+var displayBooks = 0;
+for (var i = 0; i < 72; i++) {
+    // randomize the orientation of the book
+    if (displayBooks < 12) {
+        var orientation = (random(0, 2) > 0.5) ? "display" : "spine";
+        if (orientation === "display") {
+            displayBooks++;
+        }
+    } else {
+        orientation = "spine";
+    }
+    var bookData = fetchBook();
+    var book = new Book({
+        width: 90,
+        height: 100,
+        colour: color(random(0, 255), random(0, 255), random(0, 255)),
+        title: bookData.Title,
+        author: bookData.Author,
+        rating: bookData.Rating,
+        orientation: orientation,
+    });
+    books.push(book);
+}
+if (displayBooks < 12) {
+    Program.restart();
+}
+
+for (var i = 0; i < books.length; i++) {
+    books[i].draw();
+}
