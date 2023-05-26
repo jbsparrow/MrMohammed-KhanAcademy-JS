@@ -160,14 +160,6 @@ for (var i = 0; i < 6; i++) {
     }
 }
 
-// draw one book
-// fill(214, 255, 219);
-// rect(10, 20, 90, 100);
-// fill(0, 0, 0);
-// text(ebook.title, 15, 29, 70, 100);
-// for (var i = 0; i < ebook.stars; i++) {
-//     image(getImage("cute/Star"), 13 + i * 20, 90, 20, 30);
-// }
 
 for (var i = 0; i < shelves.length; i++) {
     shelves[i].draw();
