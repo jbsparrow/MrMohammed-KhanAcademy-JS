@@ -200,10 +200,8 @@ var Book = function(config) {
 };
 
 Book.prototype.draw = function() {
-    colorMode(HSB);
-    fill(this.colour.h, this.colour.s, this.colour.b);
+    fill(this.colour);
     textSize(12.0);
-    colorMode(RGB);
     if (this.orientation === "display") {
         for (var i = 0; i < shelves.length; i++) {
             if (shelves[i].orientation === this.orientation && shelves[i].books < shelves[i].maxBooks) {
@@ -278,36 +276,41 @@ var fetchBook = function() {
 };
 
 var displayBooks = 0;
-var inc = 255 / 72;
-var hueue = 0;
-// inc = (random(0, 1) > 0.5) ? inc : -inc;
-// if (inc < 0) {
-//     hueue = 255;
-// }
-colorMode(HSB);
+var rainbowBooks = (random(0, 2) < 0.5) ? true : false;
+if (rainbowBooks) {
+    var inc = 255 / 72;
+    var hueue = 0; // Should limit to 19 to 32 for brown book colours
+    inc = (random(0, 1) > 0.5) ? inc : -inc;
+    if (inc < 0) {
+        hueue = 360;
+    }
+}
+
+colorMode(HSB, 360);
 for (var i = 0; i < 72; i++) {
-    // randomize the orientation of the book
-    // if (displayBooks < 12) {
-    //     var orientation = (random(0, 2) > 0.5) ? "display" : "spine";
-    //     if (orientation === "display") {
-    //         displayBooks++;
-    //     }
-    // } else {
-    //     orientation = "spine";
-    // }
-    if (i < 6 || i > 26 && i < 33) {
-        var orientation = "display";
-        displayBooks++;
+    var orientation;
+    if (rainbowBooks) {
+        if (i < 6 || i > 26 && i < 33) {
+            orientation = "display";
+            displayBooks++;
+        } else {
+            orientation = "spine";
+        }
     } else {
-        var orientation = "spine";
+        if (displayBooks < 12) {
+            orientation = (random(0, 2) > 0.5) ? "display" : "spine";
+            if (orientation === "display") {
+                displayBooks++;
+            }
+        } else {
+            orientation = "spine";
+        }
     }
     var bookData = fetchBook();
     var book = new Book({
         width: 90,
         height: 100,
-        // colour: color(random(0, 255), random(0, 255), random(0, 255)),
-        // colour: color(hueue, 255, 255),
-        colour: { h: hueue, s: 255, b: 255, direction: 1 },
+        colour: (rainbowBooks) ? color(hueue, 255, 255) : color(random(0, 255), 255, 255),
         title: bookData.Title,
         author: bookData.Author,
         rating: bookData.Stars,
@@ -319,32 +322,7 @@ for (var i = 0; i < 72; i++) {
 if (displayBooks < 12) {
     Program.restart();
 }
-colorMode(RGB);
 
 for (var i = 0; i < books.length; i++) {
     books[i].draw();
 }
-
-var draw = function() {
-    colorMode(RGB);
-    background(135, 64, 13);
-    for (var i = 0; i < shelves.length; i++) {
-        shelves[i].draw();
-    }
-    for (var i = 0; i < books.length; i++) {
-        books[i].draw();
-        if (books[i].colour.h >= 255) {
-            books[i].colour.direction = -1;
-            books[i].colour.h = 255;
-        } else if (books[i].colour.h <= 0) {
-            books[i].colour.direction = 1;
-            books[i].colour.h = 0;
-        }
-        if (books[i].colour.direction === 1) {
-            books[i].colour.h += inc;
-        }
-        if (books[i].colour.direction === -1) {
-            books[i].colour.h -= inc;
-        }
-    }
-};
