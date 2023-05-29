@@ -1,5 +1,6 @@
 background(127);
 noStroke();
+frameRate(12);
 var pval = 0;
 var moveVal = false;
 var currentColour = color(0, 255, 0);
@@ -42,17 +43,27 @@ var bookCoverBottomLeftY = 350;
 var bookCoverBottomRightX = 300;
 var bookCoverBottomRightY = 350;
 
-var topLeftX = 0;
-var topLeftY = 0;
-var topRightX = 0;
-var topRightY = 0;
-var bottomRightX = 0;
-var bottomRightY = 0;
-var bottomLeftX = 0;
-var bottomLeftY = 0;
+var leftPage_topLeftX = 0;
+var leftPage_topLeftY = 0;
+var leftPage_topRightX = 0;
+var leftPage_topRightY = 0;
+var leftPage_bottomRightX = 0;
+var leftPage_bottomRightY = 0;
+var leftPage_bottomLeftX = 0;
+var leftPage_bottomLeftY = 0;
+
+var rightPage_topLeftX = 0;
+var rightPage_topLeftY = 0;
+var rightPage_topRightX = 0;
+var rightPage_topRightY = 0;
+var rightPage_bottomRightX = 0;
+var rightPage_bottomRightY = 0;
+var rightPage_bottomLeftX = 0;
+var rightPage_bottomLeftY = 0;
 
 var cnt = 50;
 var cnt2 = 0;
+var cnt3 = 0;
 
 var draw = function() {
     background(127);
@@ -74,7 +85,7 @@ var draw = function() {
     }
     // Draw the book cover
     else if (!bookOpening) {
-        fill(255, 0, 0);
+        fill(lastColour);
         rect(100, 50, 200, 300);
         fill(0, 0, 0);
         textSize(12);
@@ -82,24 +93,49 @@ var draw = function() {
     } else if (bookOpening) {
         // Morph the book cover into the left page over time using vertex().
         if (cnt2 < cnt) {
-            topLeftX = lerp(bookCoverTopLeftX, 0, cnt2 / cnt);
-            topLeftY = lerp(bookCoverTopLeftY, 0, cnt2 / cnt);
-            topRightX = lerp(bookCoverTopRightX, width / 2, cnt2 / cnt);
-            topRightY = lerp(bookCoverTopRightY, 20, cnt2 / cnt);
-            bottomRightX = lerp(bookCoverBottomRightX, width / 2, cnt2 / cnt);
-            bottomRightY = lerp(bookCoverBottomRightY, height - 20, cnt2 / cnt);
-            bottomLeftX = lerp(bookCoverBottomLeftX, 0, cnt2 / cnt);
-            bottomLeftY = lerp(bookCoverBottomLeftY, height, cnt2 / cnt);
+            leftPage_topLeftX = lerp(bookCoverTopLeftX, 0, cnt2 / cnt);
+            leftPage_topLeftY = lerp(bookCoverTopLeftY, 0, cnt2 / cnt);
+            leftPage_topRightX = lerp(bookCoverTopRightX, width / 2, cnt2 / cnt);
+            leftPage_topRightY = lerp(bookCoverTopRightY, 20, cnt2 / cnt);
+            leftPage_bottomRightX = lerp(bookCoverBottomRightX, width / 2, cnt2 / cnt);
+            leftPage_bottomRightY = lerp(bookCoverBottomRightY, height - 20, cnt2 / cnt);
+            leftPage_bottomLeftX = lerp(bookCoverBottomLeftX, 0, cnt2 / cnt);
+            leftPage_bottomLeftY = lerp(bookCoverBottomLeftY, height, cnt2 / cnt);
             cnt2++;
         }
+
+        if (cnt3 < cnt) {
+            rightPage_topLeftX = lerp(width / 2, bookCoverTopRightX, cnt3 / cnt);
+            rightPage_topLeftY = lerp(20, bookCoverTopRightY, cnt3 / cnt);
+            rightPage_bottomLeftX = lerp(width / 2, bookCoverBottomRightX, cnt3 / cnt);
+            rightPage_bottomLeftY = lerp(height - 20, bookCoverBottomRightY, cnt3 / cnt);
+            rightPage_bottomRightX = lerp(width, bookCoverBottomRightX, cnt3 / cnt);
+            rightPage_bottomRightY = lerp(height, bookCoverBottomRightY, cnt3 / cnt);
+            rightPage_topRightX = lerp(width, bookCoverTopRightX, cnt3 / cnt);
+            rightPage_topRightY = lerp(0, bookCoverTopRightY, cnt3 / cnt);
+            // The above code makes the right page do a 180 degree turn.
+            // To fix it, we must run the following instead:
+            cnt3++;
+        }
+
+        // vertex(width / 2, 20); // Top left corner
+        // vertex(width / 2, height - 20); // Bottom left corner
+        // vertex(width + pageTurnVal, height); // Bottom right corner
+        // vertex(width + pageTurnVal, 0); // Top right corner
         fill(lastColour);
         beginShape();
-        vertex(topLeftX, topLeftY);
-        vertex(topRightX, topRightY);
-        vertex(bottomRightX, bottomRightY);
-        vertex(bottomLeftX, bottomLeftY);
+        vertex(leftPage_topLeftX, leftPage_topLeftY);
+        vertex(leftPage_topRightX, leftPage_topRightY);
+        vertex(leftPage_bottomRightX, leftPage_bottomRightY);
+        vertex(leftPage_bottomLeftX, leftPage_bottomLeftY);
         endShape(CLOSE);
         fill(currentColour);
+        beginShape();
+        vertex(rightPage_topLeftX, rightPage_topLeftY);
+        vertex(rightPage_topRightX, rightPage_topRightY);
+        vertex(rightPage_bottomRightX, rightPage_bottomRightY);
+        vertex(rightPage_bottomLeftX, rightPage_bottomLeftY);
+        endShape(CLOSE);
         if (cnt2 === cnt) {
             bookOpened = true;
         }
