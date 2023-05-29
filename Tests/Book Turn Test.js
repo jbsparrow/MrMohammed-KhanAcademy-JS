@@ -28,10 +28,19 @@ var drawRightPage = function(pageTurnVal, colour) {
     endShape(CLOSE);
 };
 
-var bookCoverX = 100;
-var bookCoverY = 50;
-var bookCoverWidth = 200;
-var bookCoverHeight = 300;
+// var bookCoverX = 100;
+// var bookCoverY = 50;
+// var bookCoverWidth = 200;
+// var bookCoverHeight = 300;
+
+var bookCoverTopLeftX = 100;
+var bookCoverTopLeftY = 50;
+var bookCoverTopRightX = 300;
+var bookCoverTopRightY = 50;
+var bookCoverBottomLeftX = 100;
+var bookCoverBottomLeftY = 350;
+var bookCoverBottomRightX = 300;
+var bookCoverBottomRightY = 350;
 
 var draw = function() {
     background(127);
