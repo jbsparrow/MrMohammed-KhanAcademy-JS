@@ -113,6 +113,7 @@ var Shelf = function(config) {
 };
 
 Shelf.prototype.draw = function() {
+    colorMode(RGB);
     fill(this.colour);
     rect(0, this.y, this.width, this.height);
     // Draw an outline for each book position. Draw the book on the bottom of the shelf.
@@ -175,6 +176,14 @@ var Book = function(config) {
     this.position = null; // position on shelf. Each shelf has 6 positions if in "display" mode. 0 is leftmost. Each shelf has 12 positions if in "spine" mode. 0 is leftmost.
     this.width = config.width || (config.orientation === "display") ? 90 : 25;
     this.height = config.height || 100;
+    this.x = null;
+    this.y = null;
+    this.description = config.description || "No description available.";
+    this.url = config.url || "https://www.torontopubliclibrary.ca/";
+    this.onClicked = config.onClicked || function() {
+        // Animate the book expanding from where it is on the bookshelf to the centre of the screen, keeping the text on it in the correct proportions.
+        this.expand();
+    };
 };
 
 Book.prototype.draw = function() {
@@ -189,6 +198,8 @@ Book.prototype.draw = function() {
                 break;
             }
         }
+        this.x = shelves[this.shelf].positions[this.position];
+        this.y = shelves[this.shelf].y + 20;
         rect(shelves[this.shelf].positions[this.position], shelves[this.shelf].y + 20, this.width, this.height);
         fill(0, 0, 0);
         text(this.title + "\n\nBy: " + this.author, shelves[this.shelf].positions[this.position] + 5, shelves[this.shelf].y + 25, this.width - 10, this.height - 10);
@@ -210,6 +221,8 @@ Book.prototype.draw = function() {
             }
         }
         if (this.shelf === 4) { // Make a slightly shorter book
+            this.x = shelves[this.shelf].positions[this.position];
+            this.y = shelves[this.shelf].y + 15;
             rect(shelves[this.shelf].positions[this.position], shelves[this.shelf].y + 15, this.width, 94);
             pushMatrix();
             translate(shelves[this.shelf].positions[this.position] + this.width / 2, shelves[this.shelf].y + this.height / 2);
@@ -224,6 +237,8 @@ Book.prototype.draw = function() {
             textSize(12.0);
             popMatrix();
         } else {
+            this.x = shelves[this.shelf].positions[this.position];
+            this.y = shelves[this.shelf].y + 20;
             rect(shelves[this.shelf].positions[this.position], shelves[this.shelf].y + 20, this.width, this.height);
             pushMatrix();
             translate(shelves[this.shelf].positions[this.position] + this.width / 2, shelves[this.shelf].y + this.height / 2);
@@ -238,6 +253,42 @@ Book.prototype.draw = function() {
             textSize(12.0);
             popMatrix();
         }
+    }
+};
+
+Book.prototype.expand = function() {
+    // Animate the book expanding from where it is on the bookshelf to the centre of the screen, keeping the text on it in the correct proportions.
+    // Do not use `this.draw()`
+    this.width = 200;
+    this.height = 200;
+    this.x = 100;
+    this.y = 100;
+    fill(this.colour);
+    rect(this.x, this.y, this.width, this.height);
+    fill(0, 0, 0);
+    textSize(12.0);
+    text(this.title + "\n\nBy: " + this.author, this.x + 5, this.y + 5, this.width - 10, this.height - 10);
+    // Draw stars
+    var starWidth = 15;
+    var totalStarWidth = this.rating * starWidth;
+    var starStart = this.x + ((this.width - totalStarWidth) / 2);
+    for (var i = 0; i < this.rating; i++) {
+        text("⭐", starStart + i * starWidth, this.y + 105, this.width - 10, this.height - 10);
+    }
+};
+
+
+Book.prototype.isMouseInside = function() {
+    if (mouseX > this.x && mouseX < this.x + this.width && mouseY > this.y && mouseY < this.y + this.height) {
+        return true;
+    } else {
+        return false;
+    }
+};
+
+Book.prototype.handleMouseClick = function() {
+    if (this.isMouseInside()) {
+        this.onClicked();
     }
 };
 
@@ -304,3 +355,19 @@ if (displayBooks < 12) {
 for (var i = 0; i < books.length; i++) {
     books[i].draw();
 }
+
+mouseClicked = function() {
+    for (var i = 0; i < books.length; i++) {
+        books[i].handleMouseClick();
+    }
+};
+
+
+var draw = function() {
+    for (var i = 0; i < shelves.length; i++) {
+        shelves[i].draw();
+    }
+    for (var i = 0; i < books.length; i++) {
+        books[i].draw();
+    }
+};
