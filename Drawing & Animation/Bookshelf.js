@@ -166,6 +166,10 @@ for (var i = 0; i < shelves.length; i++) {
     shelves[i].draw();
 }
 
+var drawExpandedBook = function() {
+
+};
+
 var Book = function(config) {
     this.colour = config.colour;
     this.title = config.title;
@@ -182,7 +186,7 @@ var Book = function(config) {
     this.url = config.url || "https://www.torontopubliclibrary.ca/";
     this.onClicked = config.onClicked || function() {
         // Animate the book expanding from where it is on the bookshelf to the centre of the screen, keeping the text on it in the correct proportions.
-        this.expand();
+        drawExpandedBook(this);
     };
 };
 
