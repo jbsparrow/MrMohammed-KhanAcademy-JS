@@ -11,10 +11,10 @@ var bookOpening = false;
 var drawLeftPage = function(colour) {
     fill(colour);
     beginShape();
-    vertex(0, 0);
-    vertex(0, height);
-    vertex(width / 2, height - 20);
-    vertex(width / 2, 20);
+    vertex(0, 0); // Top left corner
+    vertex(0, height); // Bottom left corner
+    vertex(width / 2, height - 20); // Bottom right corner
+    vertex(width / 2, 20); // Top right corner
     endShape(CLOSE);
 };
 
@@ -42,6 +42,18 @@ var bookCoverBottomLeftY = 350;
 var bookCoverBottomRightX = 300;
 var bookCoverBottomRightY = 350;
 
+var topLeftX = 0;
+var topLeftY = 0;
+var topRightX = 0;
+var topRightY = 0;
+var bottomRightX = 0;
+var bottomRightY = 0;
+var bottomLeftX = 0;
+var bottomLeftY = 0;
+
+var cnt = 50;
+var cnt2 = 0;
+
 var draw = function() {
     background(127);
     noStroke();
@@ -68,32 +80,32 @@ var draw = function() {
         textSize(12);
         text("Book Opened", 158, 116);
     } else if (bookOpening) {
-        // Morph the book cover into the left page over time using quad().
+        // Morph the book cover into the left page over time using vertex().
+        if (cnt2 < cnt) {
+            topLeftX = lerp(bookCoverTopLeftX, 0, cnt2 / cnt);
+            topLeftY = lerp(bookCoverTopLeftY, 0, cnt2 / cnt);
+            topRightX = lerp(bookCoverTopRightX, width / 2, cnt2 / cnt);
+            topRightY = lerp(bookCoverTopRightY, 20, cnt2 / cnt);
+            bottomRightX = lerp(bookCoverBottomRightX, width / 2, cnt2 / cnt);
+            bottomRightY = lerp(bookCoverBottomRightY, height - 20, cnt2 / cnt);
+            bottomLeftX = lerp(bookCoverBottomLeftX, 0, cnt2 / cnt);
+            bottomLeftY = lerp(bookCoverBottomLeftY, height, cnt2 / cnt);
+            cnt2++;
+        }
         fill(lastColour);
-        quad(bookCoverX, bookCoverY, bookCoverX, bookCoverY + bookCoverHeight, bookCoverX + bookCoverWidth, bookCoverY + bookCoverHeight, bookCoverX + bookCoverWidth, bookCoverY);
-        bookCoverX -= 20 / 10;
-        bookCoverY -= 10 / 10;
-        bookCoverWidth += 40 / 10;
-        bookCoverHeight += 20 / 10;
-        if (bookCoverX < 0) {
-            bookCoverX = 0;
-        }
-        if (bookCoverY < 0) {
-            bookCoverY = 0;
-        }
-        if (bookCoverWidth > width / 2) {
-            bookCoverWidth = width / 2;
-        }
-        if (bookCoverHeight > height) {
-            bookCoverHeight = height;
-        }
-        if (bookCoverX === 0 && bookCoverY === 0 && bookCoverWidth === width / 2 && bookCoverHeight === height) {
+        beginShape();
+        vertex(topLeftX, topLeftY);
+        vertex(topRightX, topRightY);
+        vertex(bottomRightX, bottomRightY);
+        vertex(bottomLeftX, bottomLeftY);
+        endShape(CLOSE);
+        fill(currentColour);
+        if (cnt2 === cnt) {
             bookOpened = true;
-            bookOpening = false;
         }
     }
-
 };
+
 
 mouseClicked = function() {
     if (!bookOpened) {
