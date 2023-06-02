@@ -105,16 +105,14 @@ var draw = function() {
         }
 
         if (cnt3 < cnt) {
-            rightPage_topLeftX = lerp(width / 2, bookCoverTopRightX, cnt3 / cnt);
-            rightPage_topLeftY = lerp(20, bookCoverTopRightY, cnt3 / cnt);
-            rightPage_bottomLeftX = lerp(width / 2, bookCoverBottomRightX, cnt3 / cnt);
-            rightPage_bottomLeftY = lerp(height - 20, bookCoverBottomRightY, cnt3 / cnt);
-            rightPage_bottomRightX = lerp(width, bookCoverBottomRightX, cnt3 / cnt);
-            rightPage_bottomRightY = lerp(height, bookCoverBottomRightY, cnt3 / cnt);
-            rightPage_topRightX = lerp(width, bookCoverTopRightX, cnt3 / cnt);
-            rightPage_topRightY = lerp(0, bookCoverTopRightY, cnt3 / cnt);
-            // The above code makes the right page do a 180 degree turn.
-            // To fix it, we must run the following instead:
+            rightPage_topLeftX = lerp(bookCoverTopRightX, width / 2, cnt3 / cnt);
+            rightPage_topLeftY = lerp(bookCoverTopRightY, 20, cnt3 / cnt);
+            rightPage_bottomLeftX = lerp(bookCoverBottomRightX, width / 2, cnt3 / cnt);
+            rightPage_bottomLeftY = lerp(bookCoverBottomRightY, height - 20, cnt3 / cnt);
+            rightPage_bottomRightX = lerp(bookCoverBottomRightX, width, cnt3 / cnt);
+            rightPage_bottomRightY = lerp(bookCoverBottomRightY, height, cnt3 / cnt);
+            rightPage_topRightX = lerp(bookCoverTopRightX, width, cnt3 / cnt);
+            rightPage_topRightY = lerp(bookCoverTopRightY, 0, cnt3 / cnt);
             cnt3++;
         }
 
