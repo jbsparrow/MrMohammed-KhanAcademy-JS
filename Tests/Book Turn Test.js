@@ -29,11 +29,6 @@ var drawRightPage = function(pageTurnVal, colour) {
     endShape(CLOSE);
 };
 
-// var bookCoverX = 100;
-// var bookCoverY = 50;
-// var bookCoverWidth = 200;
-// var bookCoverHeight = 300;
-
 var bookCoverTopLeftX = 100;
 var bookCoverTopLeftY = 50;
 var bookCoverTopRightX = 300;
@@ -116,10 +111,7 @@ var draw = function() {
             cnt3++;
         }
 
-        // vertex(width / 2, 20); // Top left corner
-        // vertex(width / 2, height - 20); // Bottom left corner
-        // vertex(width + pageTurnVal, height); // Bottom right corner
-        // vertex(width + pageTurnVal, 0); // Top right corner
+
         fill(lastColour);
         beginShape();
         vertex(leftPage_topLeftX, leftPage_topLeftY);
