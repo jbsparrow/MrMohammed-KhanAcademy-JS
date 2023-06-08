@@ -85,15 +85,15 @@ Button.prototype.draw = function() {
         stroke(0, 0, 0);
         if (this.debugVertices.length > 0) {
             for (var i = 0; i < this.debugVertices.length; i++) {
-                point(this.debugVertices[i].x, this.debugVertices[i].y);
+                point(this.debugVertices[i].x + this.translation.x, this.debugVertices[i].y + this.translation.y);
                 fill(60, 60, 60);
-                text(this.debugVertices[i].x + ", " + this.debugVertices[i].y, this.debugVertices[i].x + 5, this.debugVertices[i].y - 5);
+                text(round(this.vertexCoordinates[i].x * 10) / 10 + ", " + round(this.vertexCoordinates[i].y * 10) / 10, this.debugVertices[i].x + 5 + this.translation.x, this.debugVertices[i].y - 5 + this.translation.y);
             }
         } else {
             for (var i = 0; i < this.vertexCoordinates.length; i++) {
                 point(this.vertexCoordinates[i].x, this.vertexCoordinates[i].y);
                 fill(60, 60, 60);
-                text(this.vertexCoordinates[i].x + ", " + this.vertexCoordinates[i].y, this.vertexCoordinates[i].x + 5, this.vertexCoordinates[i].y - 5);
+                text(round(this.vertexCoordinates[i].x * 10) / 10 + ", " + round(this.vertexCoordinates[i].y * 10) / 10, this.vertexCoordinates[i].x + 5, this.vertexCoordinates[i].y - 5);
             }
         }
     }
@@ -105,12 +105,12 @@ var createCircleVertices = function(radius) {
     for (var i = 0; i < 360; i++) {
         var x = cos(i) * radius;
         var y = sin(i) * radius;
-        circleVertices.push(new PVector(x, y));
+        circleVertices.push({ x: x, y: y });
         if (i % 45 === 0) {
-            debugVertices.push(new PVector(x, y));
+            debugVertices.push({ x: x, y: y });
         }
     }
-    return circleVertices, debugVertices;
+    return { cVertices: circleVertices, cdVertices: debugVertices };
 };
 
 var b1 = new Button({
@@ -131,14 +131,15 @@ var b1 = new Button({
 
 buttons.push(b1);
 
+var vces = createCircleVertices(15);
 var circularButton = new Button({
     translation: new PVector(300, 300),
     scale: 1,
     rotation: 0,
     // Circle centered at 300, 300 with a radius of 15
-    vertexes: createCircleVertices(15)[0],
-    debug: false,
-    debugVertices: createCircleVertices(15)[1]
+    vertexes: vces.cVertices,
+    debug: true,
+    debugVertices: vces.cdVertices
 });
 
 buttons.push(circularButton);
@@ -147,7 +148,6 @@ buttons.push(circularButton);
 
 mouseMoved = function() {
     for (var i = 0; i < buttons.length; i++) {
-        println(mouseInShape(buttons[i].vertexCoordinates));
         if (mouseInShape(buttons[i].vertexCoordinates)) {
             buttons[i].onHover();
         } else {
