@@ -131,7 +131,7 @@ var b1 = new Button({
 
 buttons.push(b1);
 
-var vces = createCircleVertices(15);
+var vces = createCircleVertices(180);
 var circularButton = new Button({
     translation: new PVector(300, 300),
     scale: 1,
