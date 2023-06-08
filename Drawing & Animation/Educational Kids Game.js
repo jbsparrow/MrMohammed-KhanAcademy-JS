@@ -24,8 +24,8 @@ var mouseInShape = function(poly) {
                 // This works by checking if the mouse has crossed the line between the two vertices an odd number of times. If it has, it is inside the shape.
             }
         }
-        return mouseintersect;
     }
+    return mouseintersect;
 };
 
 var Button = function(config) {
@@ -39,8 +39,8 @@ var Button = function(config) {
     this.stroke = config.stroke || color(0, 0, 0, 0);
     this.strokeWeight = config.strokeWeight || 1;
     this.onClick = config.onClick || function() {};
-    this.onHover = config.onHover || function() {};
-    this.onHoverEnd = config.onHoverEnd || function() {};
+    this.onHover = config.onHover || function() { this.fill = color(87, 87, 87, 100); };
+    this.onHoverEnd = config.onHoverEnd || function() { this.fill = color(255, 255, 255, 0); };
     this.vertexCoordinates = config.vertexCoordinates || [];
 
     this.debug = config.debug || false;
@@ -61,25 +61,61 @@ Button.prototype.draw = function() {
     scale(this.scale);
     rotate(this.rotation);
     popMatrix();
-    var that = this;
-    this.vertexes.map(function(vertex) {
-        var newVector = new PVector(vertex.x + that.translation.x, vertex.y + that.translation.y);
-        that.vertexCoordinates.push(newVector);
-    });
+    if (this.vertexCoordinates.length === 0) {
+        var that = this;
+        this.vertexes.map(function(vertex) {
+            var newVector = new PVector(vertex.x + that.translation.x, vertex.y + that.translation.y);
+            that.vertexCoordinates.push(newVector);
+        });
+    }
+    if (this.debug) {
+        strokeWeight(3.0);
+        stroke(0, 0, 0);
+        for (var i = 0; i < this.vertexCoordinates.length; i++) {
+            point(this.vertexCoordinates[i].x, this.vertexCoordinates[i].y);
+            fill(60, 60, 60);
+            text(this.vertexCoordinates[i].x + ", " + this.vertexCoordinates[i].y, this.vertexCoordinates[i].x + 5, this.vertexCoordinates[i].y - 5);
+        }
+    }
 };
 
 var b1 = new Button({
     translation: new PVector(0, 0),
     scale: 1,
     rotation: 0,
+    // Hexagon centered at (300, 300)
     vertexes: [
-        new PVector(290, 300),
-        new PVector(290, 400),
-        new PVector(310, 400),
-        new PVector(310, 300)
+        new PVector(300, 300 - 100),
+        new PVector(300 + 86.6, 300 - 50),
+        new PVector(300 + 86.6, 300 + 50),
+        new PVector(300, 300 + 100),
+        new PVector(300 - 86.6, 300 + 50),
+        new PVector(300 - 86.6, 300 - 50)
     ],
+    debug: true
 });
 
-b1.draw();
+buttons.push(b1);
 
-debug(mouseInShape(b1.vertexCoordinates));
+
+mouseMoved = function() {
+    for (var i = 0; i < buttons.length; i++) {
+        println(mouseInShape(buttons[i].vertexCoordinates));
+        if (mouseInShape(buttons[i].vertexCoordinates)) {
+            buttons[i].onHover();
+        } else {
+            buttons[i].onHoverEnd();
+        }
+    }
+};
+
+draw = function() {
+    background(255, 255, 255);
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].draw();
+    }
+};
+
+mouseClicked = function() {
+    debug(buttons[0].vertexCoordinates, buttons[0].vertexes);
+};
