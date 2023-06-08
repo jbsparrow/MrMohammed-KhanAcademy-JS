@@ -9,11 +9,22 @@ var buttons = [];
 var mouseInShape = function(poly) {
     var mouseintersect = false;
 
-    for (var i = 1, j = 0; i < poly.length; i++, j++) {
-        var vertex1_x = poly[i].x;
-        var vertex1_y = poly[i].y;
-        var vertex2_x = poly[j].x;
-        var vertex2_y = poly[j].y;
+    for (var i = 0; i < poly.length; i++) {
+        var vertex1_y;
+        var vertex1_x;
+        var vertex2_x;
+        var vertex2_y;
+        if (i < poly.length - 1) {
+            var vertex1_y = poly[i + 1].y;
+            var vertex1_x = poly[i + 1].x;
+            var vertex2_x = poly[i].x;
+            var vertex2_y = poly[i].y;
+        } else {
+            var vertex1_y = poly[0].y;
+            var vertex1_x = poly[0].x;
+            var vertex2_x = poly[poly.length - 1].x;
+            var vertex2_y = poly[poly.length - 1].y;
+        }
         var vertex1_mouseSide = (vertex1_y > mouseY); // true if mouse is below vertex 1
         var vertex2_mouseSide = (vertex2_y > mouseY); // true if mouse is below vertex 2
 
@@ -69,7 +80,7 @@ Button.prototype.draw = function() {
         });
     }
     if (this.debug) {
-        strokeWeight(3.0);
+        strokeWeight(5.0);
         stroke(0, 0, 0);
         for (var i = 0; i < this.vertexCoordinates.length; i++) {
             point(this.vertexCoordinates[i].x, this.vertexCoordinates[i].y);
