@@ -39,8 +39,23 @@ var mouseInShape = function(poly) {
     return mouseintersect;
 };
 
+var createCircleVertices = function(radius) {
+    var circleVertices = [];
+    var debugVertices = []; // (0deg, 45deg, 90deg, 135deg, 180deg, 225deg, 270deg, 315deg, 360deg)
+    for (var i = 0; i < 360; i++) {
+        var x = cos(i) * radius;
+        var y = sin(i) * radius;
+        circleVertices.push({ x: x, y: y });
+        if (i % 45 === 0) {
+            debugVertices.push({ x: x, y: y });
+        }
+    }
+    return { cVertices: circleVertices, cdVertices: debugVertices };
+};
+
 var Button = function(config) {
     this.translation = config.translation || new PVector(0, 0);
+
     this.scale = config.scale || 1;
     this.rotation = config.rotation || 0;
     this.vertexes = config.vertexes || [];
@@ -56,6 +71,7 @@ var Button = function(config) {
 
     this.debug = config.debug || false;
     this.debugVertices = config.debugVertices || [];
+    this.defaultTranslation = this.translation;
 };
 
 Button.prototype.draw = function() {
@@ -87,7 +103,7 @@ Button.prototype.draw = function() {
             for (var i = 0; i < this.debugVertices.length; i++) {
                 point(this.debugVertices[i].x + this.translation.x, this.debugVertices[i].y + this.translation.y);
                 fill(60, 60, 60);
-                text(round(this.vertexCoordinates[i].x * 10) / 10 + ", " + round(this.vertexCoordinates[i].y * 10) / 10, this.debugVertices[i].x + 5 + this.translation.x, this.debugVertices[i].y - 5 + this.translation.y);
+                text(round(this.debugVertices[i].x * 10) / 10 + ", " + round(this.debugVertices[i].y * 10) / 10, this.debugVertices[i].x + 5 + this.translation.x, this.debugVertices[i].y - 5 + this.translation.y);
             }
         } else {
             for (var i = 0; i < this.vertexCoordinates.length; i++) {
@@ -99,18 +115,12 @@ Button.prototype.draw = function() {
     }
 };
 
-var createCircleVertices = function(radius) {
-    var circleVertices = [];
-    var debugVertices = []; // (0deg, 45deg, 90deg, 135deg, 180deg, 225deg, 270deg, 315deg, 360deg)
-    for (var i = 0; i < 360; i++) {
-        var x = cos(i) * radius;
-        var y = sin(i) * radius;
-        circleVertices.push({ x: x, y: y });
-        if (i % 45 === 0) {
-            debugVertices.push({ x: x, y: y });
-        }
-    }
-    return { cVertices: circleVertices, cdVertices: debugVertices };
+Button.prototype.updateVertices = function() {
+    this.vertexCoordinates = [];
+    this.vertexes.map(function(vertex) {
+        var newVector = new PVector(vertex.x + this.translation.x, vertex.y + this.translation.y);
+        this.vertexCoordinates.push(newVector);
+    });
 };
 
 var b1 = new Button({
@@ -139,7 +149,7 @@ var circularButton = new Button({
     // Circle centered at 300, 300 with a radius of 15
     vertexes: vces.cVertices,
     debug: true,
-    debugVertices: vces.cdVertices
+    debugVertices: vces.cdVertices,
 });
 
 buttons.push(circularButton);
@@ -164,5 +174,15 @@ draw = function() {
 };
 
 mouseClicked = function() {
-    debug(buttons[0].vertexCoordinates, buttons[0].vertexes);
+    debug(buttons[1].vertexCoordinates, buttons[1].debugVertices, buttons[1].vertexes);
+};
+
+mouseDragged = function() {
+    for (var i = 0; i < buttons.length; i++) {
+        if (mouseInShape(buttons[i].vertexCoordinates)) {
+            // Make the shape draggable and center the drag on where the mouse was when the drag started
+            buttons[i].translation = new PVector(mouseX - pmouseX + buttons[i].translation.x, mouseY - pmouseY + buttons[i].translation.y);
+            buttons[i].updateVertices();
+        }
+    }
 };
