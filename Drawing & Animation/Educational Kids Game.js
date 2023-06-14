@@ -40,6 +40,12 @@ var mouseInShape = function(poly, mouse_X, mouse_Y) {
     return mouseintersect;
 };
 
+var distanceFromShapeCenters = function(shape1, shape2, threshold) {
+    var threshold = threshold || 10;
+    var distance = sqrt(pow(shape1.translation.x - shape2.translation.x, 2) + pow(shape1.translation.y - shape2.translation.y, 2));
+    return (distance < threshold);
+};
+
 var createCircleVertices = function(radius) {
     var circleVertices = [];
     var debugVertices = []; // (0deg, 45deg, 90deg, 135deg, 180deg, 225deg, 270deg, 315deg, 360deg)
@@ -61,7 +67,8 @@ var Button = function(config) {
     this.rotation = config.rotation || 0;
     this.vertexes = config.vertexes || [];
     this.hidden = config.hidden || false;
-    this.fill = config.fill || { r: 255, g: 255, b: 255, a: 255 };
+    this.fill = config.fill || color(255, 255, 255, 255);
+    this.currentFill = config.currentFill || color(255, 255, 255, 255);
     this.stroke = config.stroke || color(0, 0, 0, 0);
     this.strokeWeight = config.strokeWeight || 1;
 
@@ -72,26 +79,10 @@ var Button = function(config) {
     this.onClick = config.onClick || function() {};
     this.hovering = false;
     this.onHover = config.onHover || function() {
-        if (!this.target) {
-            this.fill = color(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
-        }
+        this.currentFill = lerpColor(this.fill, color(255, 255, 255, 0), 0.1);
     };
     this.onHoverEnd = config.onHoverEnd || function() {
-        if (this.target) {
-            var overlap = 0;
-            for (var i = 0; i < this.vertexCoordinates.length; i++) {
-                if (mouseInShape(targetShapes[this.relatedShape].vertexCoordinates, this.vertexCoordinates[i].x, this.vertexCoordinates[i].y)) {
-                    overlap++;
-                }
-            }
-            if (overlap / this.vertexCoordinates.length >= 0.3) {
-                this.fill = { r: 87, g: 87, b: 87, a: 100 };
-            } else {
-                this.fill = { r: 255, g: 255, b: 255, a: 0 };
-            }
-        } else {
-            this.fill = { r: 255, g: 0, b: 0, a: 255 };
-        }
+        this.currentFill = this.fill;
     };
     this.vertexCoordinates = config.vertexCoordinates || [];
 
@@ -105,7 +96,7 @@ Button.prototype.draw = function() {
     scale(this.scale);
     rotate(this.rotation);
     beginShape();
-    fill(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
+    fill(this.currentFill);
     stroke(this.stroke);
     strokeWeight(this.strokeWeight);
     for (var i = 0; i < this.vertexes.length; i++) {
@@ -155,7 +146,8 @@ var Target = function(config) {
     this.rotation = config.rotation || 0;
     this.vertexes = config.vertexes || [];
     this.hidden = config.hidden || false;
-    this.fill = config.fill || { r: 255, g: 255, b: 255, a: 255 };
+    this.fill = config.fill || color(255, 255, 255, 255);
+    this.currentFill = config.currentFill || color(255, 255, 255, 255);
     this.stroke = config.stroke || color(0, 0, 0, 0);
     this.strokeWeight = config.strokeWeight || 1;
 
@@ -166,26 +158,62 @@ var Target = function(config) {
     this.onClick = config.onClick || function() {};
     this.hovering = false;
     this.onHover = config.onHover || function() {
-        this.fill = color(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
+        if (distanceFromShapeCenters(buttons[this.relatedShape], this, 10)) {
+            this.currentFill = color(87, 87, 87, 100);
+        }
     };
     this.onHoverEnd = config.onHoverEnd || function() {
-        var overlap = 0;
-        for (var i = 0; i < this.vertexCoordinates.length; i++) {
-            if (mouseInShape(buttons[this.relatedShape].vertexCoordinates, this.vertexCoordinates[i].x, this.vertexCoordinates[i].y)) {
-                overlap++;
-            }
-        }
-        if (overlap / this.vertexCoordinates.length >= 0.3) {
-            this.fill = { r: 87, g: 87, b: 87, a: 100 };
+        if (distanceFromShapeCenters(buttons[this.relatedShape], this, 10)) {
+            this.currentFill = color(87, 87, 87, 100);
         } else {
-            this.fill = { r: 255, g: 255, b: 255, a: 0 };
+            this.currentFill = this.fill;
         }
     };
     this.vertexCoordinates = config.vertexCoordinates || [];
 
     this.debug = config.debug || false;
     this.debugVertices = config.debugVertices || [];
-}
+};
+
+Target.prototype.draw = function() {
+    pushMatrix();
+    scale(this.scale);
+    rotate(this.rotation);
+    beginShape();
+    fill(this.currentFill);
+    stroke(this.stroke);
+    strokeWeight(this.strokeWeight);
+    for (var i = 0; i < this.vertexes.length; i++) {
+        vertex(this.vertexes[i].x + this.translation.x, this.vertexes[i].y + this.translation.y);
+    }
+    endShape(CLOSE);
+    translate(this.translation.x, this.translation.y);
+    popMatrix();
+    if (this.vertexCoordinates.length === 0) {
+        var that = this;
+        this.vertexes.map(function(vertex) {
+            var newVector = new PVector(vertex.x + that.translation.x, vertex.y + that.translation.y);
+            that.vertexCoordinates.push(newVector);
+        });
+    }
+    if (this.debug) {
+        strokeWeight(5.0);
+        stroke(0, 0, 0);
+        if (this.debugVertices.length > 0) {
+            for (var i = 0; i < this.debugVertices.length; i++) {
+                point(this.debugVertices[i].x + this.translation.x, this.debugVertices[i].y + this.translation.y);
+                fill(60, 60, 60);
+                text(round(this.debugVertices[i].x * 10) / 10 + ", " + round(this.debugVertices[i].y * 10) / 10, this.debugVertices[i].x + 5 + this.translation.x, this.debugVertices[i].y - 5 + this.translation.y);
+            }
+        } else {
+            for (var i = 0; i < this.vertexCoordinates.length; i++) {
+                point(this.vertexCoordinates[i].x, this.vertexCoordinates[i].y);
+                fill(60, 60, 60);
+                text(round(this.vertexCoordinates[i].x * 10) / 10 + ", " + round(this.vertexCoordinates[i].y * 10) / 10, this.vertexCoordinates[i].x + 5, this.vertexCoordinates[i].y - 5);
+            }
+        }
+    }
+};
 
 var b1 = new Button({
     translation: new PVector(0, 0),
@@ -201,7 +229,7 @@ var b1 = new Button({
         new PVector(300 - 86.6, 300 - 50)
     ],
     debug: false,
-    fill: { r: 255, g: 0, b: 0, a: 255 },
+    fill: color(255, 0, 0, 255),
     draggable: true,
     relatedShape: 0
 });
@@ -246,13 +274,14 @@ targetShapes.push(b1_target);
 var checkHover = function() {
     for (var i = 0; i < buttons.length; i++) {
         if (mouseInShape(buttons[i].vertexCoordinates, mouseX, mouseY)) {
+            targetShapes[i].onHover();
             buttons[i].onHover();
         } else {
+            targetShapes[i].onHoverEnd();
             buttons[i].onHoverEnd();
         }
     }
 };
-
 
 
 mouseMoved = function() {
@@ -260,13 +289,14 @@ mouseMoved = function() {
 };
 
 mouseReleased = function() {
-    checkHover();
+    debug(distanceFromShapeCenters(buttons[0], targetShapes[0]));
 };
 
 
 draw = function() {
     background(255, 255, 255);
     for (var i = 0; i < buttons.length; i++) {
+        targetShapes[i].draw();
         buttons[i].draw();
     }
 };
