@@ -4,9 +4,10 @@
 imageMode(CENTER);
 strokeCap(ROUND);
 var buttons = [];
+var targetShapes = [];
 
 
-var mouseInShape = function(poly) {
+var mouseInShape = function(poly, mouse_X, mouse_Y) {
     var mouseintersect = false;
 
     for (var i = 0; i < poly.length; i++) {
@@ -25,12 +26,12 @@ var mouseInShape = function(poly) {
             var vertex2_x = poly[poly.length - 1].x;
             var vertex2_y = poly[poly.length - 1].y;
         }
-        var vertex1_mouseSide = (vertex1_y > mouseY); // true if mouse is below vertex 1
-        var vertex2_mouseSide = (vertex2_y > mouseY); // true if mouse is below vertex 2
+        var vertex1_mouseSide = (vertex1_y > mouse_Y); // true if mouse is below vertex 1
+        var vertex2_mouseSide = (vertex2_y > mouse_Y); // true if mouse is below vertex 2
 
         if (vertex1_mouseSide !== vertex2_mouseSide) { // if mouse is between vertexes
-            var intersectX = (vertex2_x - vertex1_x) * (mouseY - vertex1_y) / (vertex2_y - vertex1_y) + vertex1_x; // (horizontal distance between vertices) * (vertical distance between vertex 1 and mouse) / (vertical distance between vertices) + (x position of vertex 1)
-            if (mouseX < intersectX) { // if mouse is to the left of the intersection point
+            var intersectX = (vertex2_x - vertex1_x) * (mouse_Y - vertex1_y) / (vertex2_y - vertex1_y) + vertex1_x; // (horizontal distance between vertices) * (vertical distance between vertex 1 and mouse) / (vertical distance between vertices) + (x position of vertex 1)
+            if (mouse_X < intersectX) { // if mouse is to the left of the intersection point
                 mouseintersect = !mouseintersect;
                 // This works by checking if the mouse has crossed the line between the two vertices an odd number of times. If it has, it is inside the shape.
             }
@@ -59,26 +60,52 @@ var Button = function(config) {
     this.scale = config.scale || 1;
     this.rotation = config.rotation || 0;
     this.vertexes = config.vertexes || [];
-    // this.shape = config.shape || function() {};
     this.hidden = config.hidden || false;
-    this.fill = config.fill || color(255, 255, 255, 0);
+    this.fill = config.fill || { r: 255, g: 255, b: 255, a: 255 };
     this.stroke = config.stroke || color(0, 0, 0, 0);
     this.strokeWeight = config.strokeWeight || 1;
+
+    this.target = config.target || false;
+    this.relatedShape = config.relatedShape;
+    this.shapeComplete = config.shapeComplete || false;
+
     this.onClick = config.onClick || function() {};
-    this.onHover = config.onHover || function() { this.fill = color(87, 87, 87, 100); };
-    this.onHoverEnd = config.onHoverEnd || function() { this.fill = color(255, 255, 255, 0); };
+    this.hovering = false;
+    this.onHover = config.onHover || function() {
+        if (!this.target) {
+            this.fill = color(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
+        }
+    };
+    this.onHoverEnd = config.onHoverEnd || function() {
+        if (this.target) {
+            var overlap = 0;
+            for (var i = 0; i < this.vertexCoordinates.length; i++) {
+                if (mouseInShape(targetShapes[this.relatedShape].vertexCoordinates, this.vertexCoordinates[i].x, this.vertexCoordinates[i].y)) {
+                    overlap++;
+                }
+            }
+            if (overlap / this.vertexCoordinates.length >= 0.3) {
+                this.fill = { r: 87, g: 87, b: 87, a: 100 };
+            } else {
+                this.fill = { r: 255, g: 255, b: 255, a: 0 };
+            }
+        } else {
+            this.fill = { r: 255, g: 0, b: 0, a: 255 };
+        }
+    };
     this.vertexCoordinates = config.vertexCoordinates || [];
 
     this.debug = config.debug || false;
     this.debugVertices = config.debugVertices || [];
-    this.defaultTranslation = this.translation;
+    this.draggable = config.draggable || false;
 };
 
 Button.prototype.draw = function() {
     pushMatrix();
-    // this.shape();
+    scale(this.scale);
+    rotate(this.rotation);
     beginShape();
-    fill(this.fill);
+    fill(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
     stroke(this.stroke);
     strokeWeight(this.strokeWeight);
     for (var i = 0; i < this.vertexes.length; i++) {
@@ -86,8 +113,6 @@ Button.prototype.draw = function() {
     }
     endShape(CLOSE);
     translate(this.translation.x, this.translation.y);
-    scale(this.scale);
-    rotate(this.rotation);
     popMatrix();
     if (this.vertexCoordinates.length === 0) {
         var that = this;
@@ -123,6 +148,45 @@ Button.prototype.updateVertices = function() {
     });
 };
 
+var Target = function(config) {
+    this.translation = config.translation || new PVector(0, 0);
+
+    this.scale = config.scale || 1;
+    this.rotation = config.rotation || 0;
+    this.vertexes = config.vertexes || [];
+    this.hidden = config.hidden || false;
+    this.fill = config.fill || { r: 255, g: 255, b: 255, a: 255 };
+    this.stroke = config.stroke || color(0, 0, 0, 0);
+    this.strokeWeight = config.strokeWeight || 1;
+
+    this.target = config.target || false;
+    this.relatedShape = config.relatedShape;
+    this.shapeComplete = config.shapeComplete || false;
+
+    this.onClick = config.onClick || function() {};
+    this.hovering = false;
+    this.onHover = config.onHover || function() {
+        this.fill = color(this.fill.r, this.fill.g, this.fill.b, this.fill.a);
+    };
+    this.onHoverEnd = config.onHoverEnd || function() {
+        var overlap = 0;
+        for (var i = 0; i < this.vertexCoordinates.length; i++) {
+            if (mouseInShape(buttons[this.relatedShape].vertexCoordinates, this.vertexCoordinates[i].x, this.vertexCoordinates[i].y)) {
+                overlap++;
+            }
+        }
+        if (overlap / this.vertexCoordinates.length >= 0.3) {
+            this.fill = { r: 87, g: 87, b: 87, a: 100 };
+        } else {
+            this.fill = { r: 255, g: 255, b: 255, a: 0 };
+        }
+    };
+    this.vertexCoordinates = config.vertexCoordinates || [];
+
+    this.debug = config.debug || false;
+    this.debugVertices = config.debugVertices || [];
+}
+
 var b1 = new Button({
     translation: new PVector(0, 0),
     scale: 1,
@@ -136,35 +200,69 @@ var b1 = new Button({
         new PVector(300 - 86.6, 300 + 50),
         new PVector(300 - 86.6, 300 - 50)
     ],
-    debug: true
+    debug: false,
+    fill: { r: 255, g: 0, b: 0, a: 255 },
+    draggable: true,
+    relatedShape: 0
 });
 
 buttons.push(b1);
 
-var vces = createCircleVertices(180);
-var circularButton = new Button({
-    translation: new PVector(300, 300),
+var b1_target = new Button({
+    translation: new PVector(0, 0),
     scale: 1,
     rotation: 0,
-    // Circle centered at 300, 300 with a radius of 15
-    vertexes: vces.cVertices,
-    debug: true,
-    debugVertices: vces.cdVertices,
+    // Hexagon centered at (300, 300)
+    vertexes: [
+        new PVector(300, 300 - 100),
+        new PVector(300 + 86.6, 300 - 50),
+        new PVector(300 + 86.6, 300 + 50),
+        new PVector(300, 300 + 100),
+        new PVector(300 - 86.6, 300 + 50),
+        new PVector(300 - 86.6, 300 - 50)
+    ],
+    debug: false,
+    draggable: false,
+    target: true,
+    relatedShape: 0
 });
 
-buttons.push(circularButton);
+targetShapes.push(b1_target);
 
+// var vces = createCircleVertices(180);
+// var circularButton = new Button({
+//     translation: new PVector(300, 300),
+//     scale: 1,
+//     rotation: 0,
+//     // Circle centered at 300, 300 with a radius of 180
+//     vertexes: vces.cVertices,
+//     debug: true,
+//     debugVertices: vces.cdVertices,
+//     draggable: true
+// });
 
+// buttons.push(circularButton);
 
-mouseMoved = function() {
+var checkHover = function() {
     for (var i = 0; i < buttons.length; i++) {
-        if (mouseInShape(buttons[i].vertexCoordinates)) {
+        if (mouseInShape(buttons[i].vertexCoordinates, mouseX, mouseY)) {
             buttons[i].onHover();
         } else {
             buttons[i].onHoverEnd();
         }
     }
 };
+
+
+
+mouseMoved = function() {
+    checkHover();
+};
+
+mouseReleased = function() {
+    checkHover();
+};
+
 
 draw = function() {
     background(255, 255, 255);
@@ -174,12 +272,12 @@ draw = function() {
 };
 
 mouseClicked = function() {
-    debug(buttons[1].vertexCoordinates, buttons[1].debugVertices, buttons[1].vertexes);
+    checkHover();
 };
 
 mouseDragged = function() {
     for (var i = 0; i < buttons.length; i++) {
-        if (mouseInShape(buttons[i].vertexCoordinates)) {
+        if (mouseInShape(buttons[i].vertexCoordinates, mouseX, mouseY) && buttons[i].draggable) {
             // Make the shape draggable and center the drag on where the mouse was when the drag started
             buttons[i].translation = new PVector(mouseX - pmouseX + buttons[i].translation.x, mouseY - pmouseY + buttons[i].translation.y);
             buttons[i].updateVertices();
