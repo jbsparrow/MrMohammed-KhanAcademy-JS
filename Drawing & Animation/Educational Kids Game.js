@@ -310,6 +310,10 @@ mouseMoved = function() {
 
 mouseReleased = function() {
     checkHover();
+    var i = 0;
+    debug("Before:");
+    debug(buttons[i].translation.x + ", " + buttons[i].translation.y, targetShapes[i].translation.x + ", " + targetShapes[i].translation.y);
+    debug(buttons[i].shapeComplete);
     for (var i = 0; i < buttons.length; i++) {
         if (distanceFromShapeCenters(buttons[i], targetShapes[i], buttons[i].snapDistance) && buttons[i].shapeComplete === false) {
             playSound(getSound("rpg/metal-clink"));
@@ -318,7 +322,7 @@ mouseReleased = function() {
             buttons[i].shapeComplete = true;
         }
     }
-    var i = 0;
+    debug("After:");
     debug(buttons[i].translation.x + ", " + buttons[i].translation.y, targetShapes[i].translation.x + ", " + targetShapes[i].translation.y);
     debug(buttons[i].shapeComplete);
 };
