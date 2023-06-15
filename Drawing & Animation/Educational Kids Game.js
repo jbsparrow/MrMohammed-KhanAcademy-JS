@@ -83,12 +83,12 @@ var Button = function(config) {
     this.onClick = config.onClick || function() {};
     this.hovering = false;
     this.onHover = config.onHover || function() {
-        debug('hover');
+        // debug('hover');
         this.currentFill = lerpColor(this.fill, color(255, 255, 255, 0), 0.1);
         return distanceFromShapeCenters(this, targetShapes[this.relatedShape]);
     };
     this.onHoverEnd = config.onHoverEnd || function() {
-        debug("hover end"); // Gets called while the user is still dragging the shape.
+        // debug("hover end"); // Gets called while the user is still dragging the shape.
         this.currentFill = this.fill;
         return distanceFromShapeCenters(this, targetShapes[this.relatedShape]);
     };
@@ -145,6 +145,11 @@ Button.prototype.updateVertices = function() {
         var newVector = new PVector(vertex.x + this.translation.x, vertex.y + this.translation.y);
         this.vertexCoordinates.push(newVector);
     });
+    if (this.translation === targetShapes[this.relatedShape].translation) {
+        this.shapeComplete = true;
+    } else {
+        this.shapeComplete = false;
+    }
 };
 
 var Target = function(config) {
@@ -305,6 +310,17 @@ mouseMoved = function() {
 
 mouseReleased = function() {
     checkHover();
+    for (var i = 0; i < buttons.length; i++) {
+        if (distanceFromShapeCenters(buttons[i], targetShapes[i], buttons[i].snapDistance) && buttons[i].shapeComplete === false) {
+            playSound(getSound("rpg/metal-clink"));
+            buttons[i].translation = new PVector(targetShapes[i].translation.x, targetShapes[i].translation.y);
+            buttons[i].updateVertices();
+            buttons[i].shapeComplete = true;
+        }
+    }
+    var i = 0;
+    debug(buttons[i].translation.x + ", " + buttons[i].translation.y, targetShapes[i].translation.x + ", " + targetShapes[i].translation.y);
+    debug(buttons[i].shapeComplete);
 };
 
 
@@ -327,8 +343,7 @@ mouseDragged = function() {
             buttons[i].translation = new PVector(mouseX - pmouseX + buttons[i].translation.x, mouseY - pmouseY + buttons[i].translation.y);
             buttons[i].updateVertices();
         } else {
-            debug('no drag 😡'); // This gets called while the user is still dragging the shape. Why is that?
-
+            // debug('no drag 😡'); // This gets called while the user is still dragging the shape. Why is that?
         }
     }
     checkHover();
