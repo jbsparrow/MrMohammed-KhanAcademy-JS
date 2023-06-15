@@ -41,8 +41,11 @@ var mouseInShape = function(poly, mouse_X, mouse_Y) {
 };
 
 var distanceFromShapeCenters = function(shape1, shape2, threshold) {
-    var threshold = threshold || 10;
+    var threshold = threshold || undefined;
     var distance = sqrt(pow(shape1.translation.x - shape2.translation.x, 2) + pow(shape1.translation.y - shape2.translation.y, 2));
+    if (threshold === undefined) {
+        return distance;
+    }
     return (distance < threshold);
 };
 
@@ -68,21 +71,26 @@ var Button = function(config) {
     this.vertexes = config.vertexes || [];
     this.hidden = config.hidden || false;
     this.fill = config.fill || color(255, 255, 255, 255);
-    this.currentFill = config.currentFill || color(255, 255, 255, 255);
+    this.currentFill = config.currentFill || config.fill;
     this.stroke = config.stroke || color(0, 0, 0, 0);
     this.strokeWeight = config.strokeWeight || 1;
 
     this.target = config.target || false;
     this.relatedShape = config.relatedShape;
+    this.snapDistance = config.hoverDistance || 50;
     this.shapeComplete = config.shapeComplete || false;
 
     this.onClick = config.onClick || function() {};
     this.hovering = false;
     this.onHover = config.onHover || function() {
+        debug('hover');
         this.currentFill = lerpColor(this.fill, color(255, 255, 255, 0), 0.1);
+        return distanceFromShapeCenters(this, targetShapes[this.relatedShape]);
     };
     this.onHoverEnd = config.onHoverEnd || function() {
+        debug("hover end"); // Gets called while the user is still dragging the shape.
         this.currentFill = this.fill;
+        return distanceFromShapeCenters(this, targetShapes[this.relatedShape]);
     };
     this.vertexCoordinates = config.vertexCoordinates || [];
 
@@ -158,16 +166,22 @@ var Target = function(config) {
     this.onClick = config.onClick || function() {};
     this.hovering = false;
     this.onHover = config.onHover || function() {
-        if (distanceFromShapeCenters(buttons[this.relatedShape], this, 10)) {
-            this.currentFill = color(87, 87, 87, 100);
-        }
-    };
-    this.onHoverEnd = config.onHoverEnd || function() {
-        if (distanceFromShapeCenters(buttons[this.relatedShape], this, 10)) {
+        var connectedButton = buttons[this.relatedShape];
+        if (distanceFromShapeCenters(connectedButton, this, connectedButton.snapDistance)) {
             this.currentFill = color(87, 87, 87, 100);
         } else {
             this.currentFill = this.fill;
         }
+        return distanceFromShapeCenters(buttons[this.relatedShape], this);
+    };
+    this.onHoverEnd = config.onHoverEnd || function() {
+        var connectedButton = buttons[this.relatedShape];
+        if (distanceFromShapeCenters(connectedButton, this, connectedButton.snapDistance)) {
+            this.currentFill = color(87, 87, 87, 100);
+        } else {
+            this.currentFill = this.fill;
+        }
+        return distanceFromShapeCenters(buttons[this.relatedShape], this);
     };
     this.vertexCoordinates = config.vertexCoordinates || [];
 
@@ -215,8 +229,9 @@ Target.prototype.draw = function() {
     }
 };
 
+
 var b1 = new Button({
-    translation: new PVector(0, 0),
+    translation: new PVector(250, 112),
     scale: 1,
     rotation: 0,
     // Hexagon centered at (300, 300)
@@ -236,7 +251,7 @@ var b1 = new Button({
 
 buttons.push(b1);
 
-var b1_target = new Button({
+var b1_target = new Target({
     translation: new PVector(0, 0),
     scale: 1,
     rotation: 0,
@@ -273,7 +288,7 @@ targetShapes.push(b1_target);
 
 var checkHover = function() {
     for (var i = 0; i < buttons.length; i++) {
-        if (mouseInShape(buttons[i].vertexCoordinates, mouseX, mouseY)) {
+        if (mouseInShape(buttons[i].vertexCoordinates, pmouseX, pmouseY)) {
             targetShapes[i].onHover();
             buttons[i].onHover();
         } else {
@@ -289,7 +304,7 @@ mouseMoved = function() {
 };
 
 mouseReleased = function() {
-    debug(distanceFromShapeCenters(buttons[0], targetShapes[0]));
+    checkHover();
 };
 
 
@@ -311,6 +326,12 @@ mouseDragged = function() {
             // Make the shape draggable and center the drag on where the mouse was when the drag started
             buttons[i].translation = new PVector(mouseX - pmouseX + buttons[i].translation.x, mouseY - pmouseY + buttons[i].translation.y);
             buttons[i].updateVertices();
+        } else {
+            debug('no drag 😡'); // This gets called while the user is still dragging the shape. Why is that?
+
         }
     }
+    checkHover();
 };
+
+debug(Button, Target);
