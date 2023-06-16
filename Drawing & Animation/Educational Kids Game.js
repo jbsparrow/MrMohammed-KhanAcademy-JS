@@ -9,10 +9,10 @@ var shapeBeingDragged;
 var shapeDragged = false;
 var gameState = 0;
 
+var backgroundColor = color(255, 255, 255);
 var nodeColor = color(40, 168, 107);
 var edgeColor = color(34, 68, 204);
 var nodeSize = 8;
-var shapes = [];
 
 var createCuboid = function(x, y, z, w, h, d) {
     var nodes = [
@@ -41,6 +41,11 @@ var createCuboid = function(x, y, z, w, h, d) {
     ];
     return { 'nodes': nodes, 'edges': edges };
 };
+
+var shape1 = createCuboid(-120, -20, -20, 240, 40, 40);
+var shape2 = createCuboid(-120, -50, -30, -20, 100, 60);
+var shape3 = createCuboid(120, -50, -30, 20, 100, 60);
+var shapes = [shape1, shape2, shape3];
 
 // Rotate shape around the z-axis
 var rotateZ3D = function(theta, nodes) {
@@ -82,8 +87,6 @@ var rotateY3D = function(theta, nodes) {
     }
 };
 
-shapes.push(createCuboid(0, 0, 0, 100, 160, 50));
-shapes.push(createCuboid(120, -50, -30, 20, 100, 60));
 
 
 var mouseInShape = function(poly, mouse_X, mouse_Y) {
@@ -446,6 +449,7 @@ mouseMoved = function() {
     checkHover();
     var dx = mouseX - pmouseX;
     var dy = mouseY - pmouseY;
+
     for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
         var nodes = shapes[shapeNum].nodes;
         rotateY3D(dx, nodes);
@@ -474,11 +478,15 @@ draw = function() {
         pushMatrix();
         translate(200, 200);
 
+        var nodes, edges;
+
         // Draw edges
         stroke(edgeColor);
+
         for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-            var nodes = shapes[shapeNum].nodes;
-            var edges = shapes[shapeNum].edges;
+            nodes = shapes[shapeNum].nodes;
+            edges = shapes[shapeNum].edges;
+
             for (var e = 0; e < edges.length; e++) {
                 var n0 = edges[e][0];
                 var n1 = edges[e][1];
@@ -492,14 +500,15 @@ draw = function() {
         fill(nodeColor);
         noStroke();
         for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-            var nodes = shapes[shapeNum].nodes;
+            nodes = shapes[shapeNum].nodes;
+
             for (var n = 0; n < nodes.length; n++) {
                 var node = nodes[n];
-                // ellipse(node[0], node[1], nodeSize, nodeSize);
+                ellipse(node[0], node[1], nodeSize, nodeSize);
             }
         }
-        popMatrix();
 
+        popMatrix();
     } else if (gameState === 1) {
         for (var i = 0; i < buttons.length; i++) {
             targetShapes[i].draw();
