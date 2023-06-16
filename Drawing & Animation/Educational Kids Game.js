@@ -42,10 +42,66 @@ var createCuboid = function(x, y, z, w, h, d) {
     return { 'nodes': nodes, 'edges': edges };
 };
 
-var shape1 = createCuboid(-120, -20, -20, 240, 40, 40);
-var shape2 = createCuboid(-120, -50, -30, -20, 100, 60);
-var shape3 = createCuboid(120, -50, -30, 20, 100, 60);
-var shapes = [shape1, shape2, shape3];
+var createTriangularPrism = function(x, y, z, w, h, d) {
+    var nodes = [
+        [x, y, z],
+        [x, y + h, z],
+        [x + w, y + h, z],
+        [x, y, z + d],
+        [x, y + h, z + d],
+        [x + w, y + h, z + d]
+    ];
+    var edges = [
+        [0, 1],
+        [1, 2],
+        [2, 0],
+        [3, 4],
+        [4, 5],
+        [5, 3],
+        [0, 3],
+        [1, 4],
+        [2, 5]
+    ];
+    return { 'nodes': nodes, 'edges': edges };
+};
+
+var createPyramid = function(x, y, z, w, h, d) {
+    var nodes = [
+        [x, y, z],
+        [x + w, y, z],
+        [x + w / 2, y + h, z],
+        [x + w / 2, y, z + d]
+    ];
+    var edges = [
+        [0, 1],
+        [1, 2],
+        [2, 0],
+        [3, 0],
+        [3, 1],
+        [3, 2]
+    ];
+    return { 'nodes': nodes, 'edges': edges };
+};
+
+
+
+var shapes = [];
+
+var shapes1 = [];
+shapes1.push(createCuboid(-120, -20, -20, 240, 40, 40));
+shapes1.push(createCuboid(-120, -50, -30, -20, 100, 60));
+shapes1.push(createCuboid(120, -50, -30, 20, 100, 60));
+
+var shapes2 = [];
+shapes2.push(createTriangularPrism(-120, -20, -20, 240, 40, 40));
+shapes2.push(createTriangularPrism(-120, -50, -30, -20, 100, 60));
+shapes2.push(createTriangularPrism(120, -50, -30, 20, 100, 60));
+
+// Create a triangular prism
+shapes.push(shapes1);
+shapes.push(shapes2);
+shapes.push([createPyramid(-220, -50, -30, 80, 100, 60)]);
+
 
 // Rotate shape around the z-axis
 var rotateZ3D = function(theta, nodes) {
@@ -447,13 +503,15 @@ var checkHover = function() {
 
 mouseMoved = function() {
     checkHover();
-    var dx = mouseX - pmouseX;
-    var dy = mouseY - pmouseY;
-
     for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-        var nodes = shapes[shapeNum].nodes;
-        rotateY3D(dx, nodes);
-        rotateX3D(dy, nodes);
+        var dx = mouseX - pmouseX;
+        var dy = mouseY - pmouseY;
+        var tx = shapeNum;
+        for (var i = 0; i < shapes[tx].length; i++) {
+            var nodes = shapes[tx][i].nodes;
+            rotateY3D(dx, nodes);
+            rotateX3D(dy, nodes);
+        }
     }
 };
 
@@ -484,15 +542,18 @@ draw = function() {
         stroke(edgeColor);
 
         for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-            nodes = shapes[shapeNum].nodes;
-            edges = shapes[shapeNum].edges;
+            var tx = shapeNum;
+            for (var i = 0; i < shapes[tx].length; i++) {
+                nodes = shapes[tx][i].nodes;
+                edges = shapes[tx][i].edges;
 
-            for (var e = 0; e < edges.length; e++) {
-                var n0 = edges[e][0];
-                var n1 = edges[e][1];
-                var node0 = nodes[n0];
-                var node1 = nodes[n1];
-                line(node0[0], node0[1], node1[0], node1[1]);
+                for (var e = 0; e < edges.length; e++) {
+                    var n0 = edges[e][0];
+                    var n1 = edges[e][1];
+                    var node0 = nodes[n0];
+                    var node1 = nodes[n1];
+                    line(node0[0], node0[1], node1[0], node1[1]);
+                }
             }
         }
 
@@ -500,11 +561,14 @@ draw = function() {
         fill(nodeColor);
         noStroke();
         for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-            nodes = shapes[shapeNum].nodes;
+            var tx = shapeNum;
+            for (var i = 0; i < shapes[tx].length; i++) {
+                nodes = shapes[tx][i].nodes;
 
-            for (var n = 0; n < nodes.length; n++) {
-                var node = nodes[n];
-                ellipse(node[0], node[1], nodeSize, nodeSize);
+                for (var n = 0; n < nodes.length; n++) {
+                    var node = nodes[n];
+                    // ellipse(node[0], node[1], nodeSize, nodeSize);
+                }
             }
         }
 
