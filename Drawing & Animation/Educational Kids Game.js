@@ -7,133 +7,13 @@ var buttons = [];
 var targetShapes = [];
 var shapeBeingDragged;
 var shapeDragged = false;
-var gameState = 0;
-
-function StartScreen(config) {
-    this.title = config.title;
-    this.buttonText = config.buttonText;
-    this.buttonX = config.buttonX;
-    this.buttonY = config.buttonY;
-    this.buttonWidth = config.buttonWidth;
-    this.buttonHeight = config.buttonHeight;
-    this.startGame = config.startGame;
-    this.cornerRadius = 20; // Radius of the rounded corners
-
-    // Calculate the vertices for the button
-    this.buttonVertices = this.calculateVertices();
-}
-
-StartScreen.prototype.calculateVertices = function() {
-    var vertices = [];
-
-    // Calculate the center points of each edge where the circle slices will begin and end
-    var centers = [
-        { x: this.buttonX + this.buttonWidth / 2, y: this.buttonY + this.cornerRadius }, // Top
-        { x: this.buttonX + this.buttonWidth - this.cornerRadius, y: this.buttonY + this.buttonHeight / 2 }, // Right
-        { x: this.buttonX + this.buttonWidth / 2, y: this.buttonY + this.buttonHeight - this.cornerRadius }, // Bottom
-        { x: this.buttonX + this.cornerRadius, y: this.buttonY + this.buttonHeight / 2 }, // Left
-    ];
-
-    // Calculate the vertices for each "circle slice" at the corners
-    for (var i = 0; i < 4; i++) {
-        for (var theta = i * PI / 2; theta <= (i + 1) * PI / 2; theta += PI / 2 / this.cornerRadius) {
-            vertices.push({
-                x: centers[i].x + this.cornerRadius * cos(theta),
-                y: centers[i].y + this.cornerRadius * sin(theta)
-            });
-        }
-    }
-
-    return vertices;
-};
-
-StartScreen.prototype.draw = function() {
-    // Draw the button
-    fill(255);
-    beginShape();
-    for (var i = 0; i < this.buttonVertices.length; i++) {
-        vertex(this.buttonVertices[i].x, this.buttonVertices[i].y);
-    }
-    endShape(CLOSE);
-
-    // Draw the text
-    fill(0);
-    textAlign(CENTER, CENTER);
-    text(this.buttonText, this.buttonX + this.buttonWidth / 2, this.buttonY + this.buttonHeight / 2);
-};
-
-StartScreen.prototype.mouseClicked = function() {
-    // Use your existing mouseInShape function to check if the mouse is over the button
-    if (mouseInShape(this.buttonVertices)) {
-        gameState = 1;
-    }
-};
-
-function EndScreen(config) {
-    this.title = config.title;
-    this.buttonText = config.buttonText;
-    this.buttonX = config.buttonX;
-    this.buttonY = config.buttonY;
-    this.buttonWidth = config.buttonWidth;
-    this.buttonHeight = config.buttonHeight;
-    this.endGame = config.endGame;
-    this.cornerRadius = 20; // Radius of the rounded corners
-
-    // Calculate the vertices for the button
-    this.buttonVertices = this.calculateVertices();
-}
-
-EndScreen.prototype.calculateVertices = function() {
-    var vertices = [];
-
-    // Calculate the center points of each edge where the circle slices will begin and end
-    var centers = [
-        { x: this.buttonX + this.buttonWidth / 2, y: this.buttonY + this.cornerRadius }, // Top
-        { x: this.buttonX + this.buttonWidth - this.cornerRadius, y: this.buttonY + this.buttonHeight / 2 }, // Right
-        { x: this.buttonX + this.buttonWidth / 2, y: this.buttonY + this.buttonHeight - this.cornerRadius }, // Bottom
-        { x: this.buttonX + this.cornerRadius, y: this.buttonY + this.buttonHeight / 2 }, // Left
-    ];
-
-    // Calculate the vertices for each "circle slice" at the corners
-    for (var i = 0; i < 4; i++) {
-        for (var theta = i * PI / 2; theta <= (i + 1) * PI / 2; theta += PI / 2 / this.cornerRadius) {
-            vertices.push({
-                x: centers[i].x + this.cornerRadius * cos(theta),
-                y: centers[i].y + this.cornerRadius * sin(theta)
-            });
-        }
-    }
-
-    return vertices;
-};
-
-EndScreen.prototype.draw = function() {
-    // Draw the button
-    fill(255);
-    beginShape();
-    for (var i = 0; i < this.buttonVertices.length; i++) {
-        vertex(this.buttonVertices[i].x, this.buttonVertices[i].y);
-    }
-    endShape(CLOSE);
-
-    // Draw the text
-    fill(0);
-    textAlign(CENTER, CENTER);
-    text(this.buttonText, this.buttonX + this.buttonWidth / 2, this.buttonY + this.buttonHeight / 2);
-};
-
-EndScreen.prototype.mouseClicked = function() {
-    // Use your existing mouseInShape function to check if the mouse is over the button
-    if (mouseInShape(this.buttonVertices)) {
-        Program.restart();
-    }
-};
-
-
+var gameState = 1;
 
 
 var mouseInShape = function(poly, mouse_X, mouse_Y) {
     var mouseintersect = false;
+    var mouse_X = mouse_X || mouseX;
+    var mouse_Y = mouse_Y || mouseY;
 
     for (var i = 0; i < poly.length; i++) {
         var vertex1_y;
@@ -164,6 +44,8 @@ var mouseInShape = function(poly, mouse_X, mouse_Y) {
     }
     return mouseintersect;
 };
+
+
 
 var distanceFromShapeCenters = function(shape1, shape2, threshold) {
     var threshold = threshold || undefined;
@@ -493,9 +375,13 @@ mouseReleased = function() {
 
 draw = function() {
     background(255, 255, 255);
-    for (var i = 0; i < buttons.length; i++) {
-        targetShapes[i].draw();
-        buttons[i].draw();
+    if (gameState === 0) {
+        // startScreen.draw();
+    } else if (gameState === 1) {
+        for (var i = 0; i < buttons.length; i++) {
+            targetShapes[i].draw();
+            buttons[i].draw();
+        }
     }
 };
 
