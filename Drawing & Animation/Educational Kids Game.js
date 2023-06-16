@@ -5,6 +5,131 @@ imageMode(CENTER);
 strokeCap(ROUND);
 var buttons = [];
 var targetShapes = [];
+var shapeBeingDragged;
+var shapeDragged = false;
+var gameState = 0;
+
+function StartScreen(config) {
+    this.title = config.title;
+    this.buttonText = config.buttonText;
+    this.buttonX = config.buttonX;
+    this.buttonY = config.buttonY;
+    this.buttonWidth = config.buttonWidth;
+    this.buttonHeight = config.buttonHeight;
+    this.startGame = config.startGame;
+    this.cornerRadius = 20; // Radius of the rounded corners
+
+    // Calculate the vertices for the button
+    this.buttonVertices = this.calculateVertices();
+}
+
+StartScreen.prototype.calculateVertices = function() {
+    var vertices = [];
+
+    // Calculate the center points of each edge where the circle slices will begin and end
+    var centers = [
+        { x: this.buttonX + this.buttonWidth / 2, y: this.buttonY + this.cornerRadius }, // Top
+        { x: this.buttonX + this.buttonWidth - this.cornerRadius, y: this.buttonY + this.buttonHeight / 2 }, // Right
+        { x: this.buttonX + this.buttonWidth / 2, y: this.buttonY + this.buttonHeight - this.cornerRadius }, // Bottom
+        { x: this.buttonX + this.cornerRadius, y: this.buttonY + this.buttonHeight / 2 }, // Left
+    ];
+
+    // Calculate the vertices for each "circle slice" at the corners
+    for (var i = 0; i < 4; i++) {
+        for (var theta = i * PI / 2; theta <= (i + 1) * PI / 2; theta += PI / 2 / this.cornerRadius) {
+            vertices.push({
+                x: centers[i].x + this.cornerRadius * cos(theta),
+                y: centers[i].y + this.cornerRadius * sin(theta)
+            });
+        }
+    }
+
+    return vertices;
+};
+
+StartScreen.prototype.draw = function() {
+    // Draw the button
+    fill(255);
+    beginShape();
+    for (var i = 0; i < this.buttonVertices.length; i++) {
+        vertex(this.buttonVertices[i].x, this.buttonVertices[i].y);
+    }
+    endShape(CLOSE);
+
+    // Draw the text
+    fill(0);
+    textAlign(CENTER, CENTER);
+    text(this.buttonText, this.buttonX + this.buttonWidth / 2, this.buttonY + this.buttonHeight / 2);
+};
+
+StartScreen.prototype.mouseClicked = function() {
+    // Use your existing mouseInShape function to check if the mouse is over the button
+    if (mouseInShape(this.buttonVertices)) {
+        gameState = 1;
+    }
+};
+
+function EndScreen(config) {
+    this.title = config.title;
+    this.buttonText = config.buttonText;
+    this.buttonX = config.buttonX;
+    this.buttonY = config.buttonY;
+    this.buttonWidth = config.buttonWidth;
+    this.buttonHeight = config.buttonHeight;
+    this.endGame = config.endGame;
+    this.cornerRadius = 20; // Radius of the rounded corners
+
+    // Calculate the vertices for the button
+    this.buttonVertices = this.calculateVertices();
+}
+
+EndScreen.prototype.calculateVertices = function() {
+    var vertices = [];
+
+    // Calculate the center points of each edge where the circle slices will begin and end
+    var centers = [
+        { x: this.buttonX + this.buttonWidth / 2, y: this.buttonY + this.cornerRadius }, // Top
+        { x: this.buttonX + this.buttonWidth - this.cornerRadius, y: this.buttonY + this.buttonHeight / 2 }, // Right
+        { x: this.buttonX + this.buttonWidth / 2, y: this.buttonY + this.buttonHeight - this.cornerRadius }, // Bottom
+        { x: this.buttonX + this.cornerRadius, y: this.buttonY + this.buttonHeight / 2 }, // Left
+    ];
+
+    // Calculate the vertices for each "circle slice" at the corners
+    for (var i = 0; i < 4; i++) {
+        for (var theta = i * PI / 2; theta <= (i + 1) * PI / 2; theta += PI / 2 / this.cornerRadius) {
+            vertices.push({
+                x: centers[i].x + this.cornerRadius * cos(theta),
+                y: centers[i].y + this.cornerRadius * sin(theta)
+            });
+        }
+    }
+
+    return vertices;
+};
+
+EndScreen.prototype.draw = function() {
+    // Draw the button
+    fill(255);
+    beginShape();
+    for (var i = 0; i < this.buttonVertices.length; i++) {
+        vertex(this.buttonVertices[i].x, this.buttonVertices[i].y);
+    }
+    endShape(CLOSE);
+
+    // Draw the text
+    fill(0);
+    textAlign(CENTER, CENTER);
+    text(this.buttonText, this.buttonX + this.buttonWidth / 2, this.buttonY + this.buttonHeight / 2);
+};
+
+EndScreen.prototype.mouseClicked = function() {
+    // Use your existing mouseInShape function to check if the mouse is over the button
+    if (mouseInShape(this.buttonVertices)) {
+        Program.restart();
+    }
+};
+
+
 
 
 var mouseInShape = function(poly, mouse_X, mouse_Y) {
@@ -141,16 +266,18 @@ Button.prototype.draw = function() {
 
 Button.prototype.updateVertices = function() {
     this.vertexCoordinates = [];
+    var self = this;
     this.vertexes.map(function(vertex) {
-        var newVector = new PVector(vertex.x + this.translation.x, vertex.y + this.translation.y);
-        this.vertexCoordinates.push(newVector);
+        var newVector = new PVector(vertex.x + self.translation.x, vertex.y + self.translation.y);
+        self.vertexCoordinates.push(newVector);
     });
-    if (this.translation === targetShapes[this.relatedShape].translation) {
-        this.shapeComplete = true;
+    if (self.translation === targetShapes[this.relatedShape].translation) {
+        self.shapeComplete = true;
     } else {
-        this.shapeComplete = false;
+        self.shapeComplete = false;
     }
 };
+
 
 var Target = function(config) {
     this.translation = config.translation || new PVector(0, 0);
@@ -194,45 +321,7 @@ var Target = function(config) {
     this.debugVertices = config.debugVertices || [];
 };
 
-Target.prototype.draw = function() {
-    pushMatrix();
-    scale(this.scale);
-    rotate(this.rotation);
-    beginShape();
-    fill(this.currentFill);
-    stroke(this.stroke);
-    strokeWeight(this.strokeWeight);
-    for (var i = 0; i < this.vertexes.length; i++) {
-        vertex(this.vertexes[i].x + this.translation.x, this.vertexes[i].y + this.translation.y);
-    }
-    endShape(CLOSE);
-    translate(this.translation.x, this.translation.y);
-    popMatrix();
-    if (this.vertexCoordinates.length === 0) {
-        var that = this;
-        this.vertexes.map(function(vertex) {
-            var newVector = new PVector(vertex.x + that.translation.x, vertex.y + that.translation.y);
-            that.vertexCoordinates.push(newVector);
-        });
-    }
-    if (this.debug) {
-        strokeWeight(5.0);
-        stroke(0, 0, 0);
-        if (this.debugVertices.length > 0) {
-            for (var i = 0; i < this.debugVertices.length; i++) {
-                point(this.debugVertices[i].x + this.translation.x, this.debugVertices[i].y + this.translation.y);
-                fill(60, 60, 60);
-                text(round(this.debugVertices[i].x * 10) / 10 + ", " + round(this.debugVertices[i].y * 10) / 10, this.debugVertices[i].x + 5 + this.translation.x, this.debugVertices[i].y - 5 + this.translation.y);
-            }
-        } else {
-            for (var i = 0; i < this.vertexCoordinates.length; i++) {
-                point(this.vertexCoordinates[i].x, this.vertexCoordinates[i].y);
-                fill(60, 60, 60);
-                text(round(this.vertexCoordinates[i].x * 10) / 10 + ", " + round(this.vertexCoordinates[i].y * 10) / 10, this.vertexCoordinates[i].x + 5, this.vertexCoordinates[i].y - 5);
-            }
-        }
-    }
-};
+Target.prototype.draw = Button.prototype.draw;
 
 
 var b1 = new Button({
@@ -277,19 +366,98 @@ var b1_target = new Target({
 
 targetShapes.push(b1_target);
 
-// var vces = createCircleVertices(180);
-// var circularButton = new Button({
-//     translation: new PVector(300, 300),
-//     scale: 1,
-//     rotation: 0,
-//     // Circle centered at 300, 300 with a radius of 180
-//     vertexes: vces.cVertices,
-//     debug: true,
-//     debugVertices: vces.cdVertices,
-//     draggable: true
-// });
+var b2 = new Button({
+    translation: new PVector(250, 212),
+    scale: 1,
+    rotation: 0,
+    vertexes: [
+        new PVector(300 - 50, 300 - 50),
+        new PVector(300 + 50, 300 - 50),
+        new PVector(300 + 50, 300 + 50),
+        new PVector(300 - 50, 300 + 50)
+    ],
+    debug: false,
+    fill: color(0, 255, 0, 255),
+    draggable: true,
+    relatedShape: 1
+});
 
-// buttons.push(circularButton);
+buttons.push(b2);
+
+var b2_target = new Target({
+    translation: new PVector(0, 0),
+    scale: 1,
+    rotation: 0,
+    vertexes: [
+        new PVector(300 - 50, 300 - 50),
+        new PVector(300 + 50, 300 - 50),
+        new PVector(300 + 50, 300 + 50),
+        new PVector(300 - 50, 300 + 50)
+    ],
+    fill: color(255, 255, 255, 255),
+    relatedShape: 1,
+});
+
+targetShapes.push(b2_target);
+
+var b3 = new Button({
+    translation: new PVector(500, 212),
+    scale: 1,
+    rotation: 0,
+    fill: color(121, 37, 199, 255),
+    // Circle centered at 300, 300 with a radius of 180
+    vertexes: createCircleVertices(115).cVertices,
+    draggable: true,
+    relatedShape: 2
+});
+
+buttons.push(b3);
+
+var b3_target = new Target({
+    translation: new PVector(0, 0),
+    scale: 1,
+    rotation: 0,
+    fill: color(255, 255, 255, 255),
+    vertexes: createCircleVertices(115).cVertices,
+    draggable: false,
+    target: true,
+    relatedShape: 2
+});
+
+
+targetShapes.push(b3_target);
+
+var b4 = new Button({
+    translation: new PVector(100, 125),
+    scale: 1,
+    rotation: 0,
+    vertexes: [
+        new PVector(300, 300 - 86.602540378443864676372317075),
+        new PVector(300 - 50, 300 + 86.602540378443864676372317075),
+        new PVector(300 + 50, 300 + 86.602540378443864676372317075)
+    ],
+    debug: false,
+    fill: color(0, 0, 255, 255),
+    draggable: true,
+    relatedShape: 3
+});
+
+buttons.push(b4);
+
+var b4_target = new Target({
+    translation: new PVector(0, 0),
+    scale: 1,
+    rotation: 0,
+    vertexes: [
+        new PVector(300, 300 - 86.602540378443864676372317075),
+        new PVector(300 - 50, 300 + 86.602540378443864676372317075),
+        new PVector(300 + 50, 300 + 86.602540378443864676372317075)
+    ],
+    fill: color(255, 255, 255, 255),
+    relatedShape: 3
+});
+
+targetShapes.push(b4_target);
 
 var checkHover = function() {
     for (var i = 0; i < buttons.length; i++) {
@@ -311,9 +479,6 @@ mouseMoved = function() {
 mouseReleased = function() {
     checkHover();
     var i = 0;
-    debug("Before:");
-    debug(buttons[i].translation.x + ", " + buttons[i].translation.y, targetShapes[i].translation.x + ", " + targetShapes[i].translation.y);
-    debug(buttons[i].shapeComplete);
     for (var i = 0; i < buttons.length; i++) {
         if (distanceFromShapeCenters(buttons[i], targetShapes[i], buttons[i].snapDistance) && buttons[i].shapeComplete === false) {
             playSound(getSound("rpg/metal-clink"));
@@ -322,9 +487,7 @@ mouseReleased = function() {
             buttons[i].shapeComplete = true;
         }
     }
-    debug("After:");
-    debug(buttons[i].translation.x + ", " + buttons[i].translation.y, targetShapes[i].translation.x + ", " + targetShapes[i].translation.y);
-    debug(buttons[i].shapeComplete);
+    shapeDragged = false;
 };
 
 
@@ -342,12 +505,12 @@ mouseClicked = function() {
 
 mouseDragged = function() {
     for (var i = 0; i < buttons.length; i++) {
-        if (mouseInShape(buttons[i].vertexCoordinates, mouseX, mouseY) && buttons[i].draggable) {
+        if (mouseInShape(buttons[i].vertexCoordinates, mouseX, mouseY) && buttons[i].draggable && (shapeBeingDragged === buttons[i] || shapeDragged === false)) {
+            shapeDragged = true;
+            shapeBeingDragged = buttons[i];
             // Make the shape draggable and center the drag on where the mouse was when the drag started
             buttons[i].translation = new PVector(mouseX - pmouseX + buttons[i].translation.x, mouseY - pmouseY + buttons[i].translation.y);
             buttons[i].updateVertices();
-        } else {
-            // debug('no drag 😡'); // This gets called while the user is still dragging the shape. Why is that?
         }
     }
     checkHover();
