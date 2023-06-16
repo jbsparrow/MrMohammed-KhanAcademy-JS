@@ -9,10 +9,17 @@ var shapeBeingDragged;
 var shapeDragged = false;
 var gameState = 0;
 
-var backgroundColor = color(255, 255, 255);
-var nodeColor = color(40, 168, 107);
-var edgeColor = color(34, 68, 204);
-var nodeSize = 8;
+var nodeColor;
+var edgeColor;
+
+colorMode(HSB);
+edgeColor = color(random(0, 255), random(100, 255), 255);
+nodeColor = color(0, 0, 0);
+colorMode(RGB);
+
+var nodeSize = 0;
+var startTime;
+var endTime;
 
 var createCuboid = function(x, y, z, w, h, d) {
     var nodes = [
@@ -84,23 +91,32 @@ var createPyramid = function(x, y, z, w, h, d) {
 };
 
 
-
 var shapes = [];
+var gridSize = 30; // Define the size of the grid cells
 
-var shapes1 = [];
-shapes1.push(createCuboid(-120, -20, -20, 240, 40, 40));
-shapes1.push(createCuboid(-120, -50, -30, -20, 100, 60));
-shapes1.push(createCuboid(120, -50, -30, 20, 100, 60));
-
-var shapes2 = [];
-shapes2.push(createTriangularPrism(-120, -20, -20, 240, 40, 40));
-shapes2.push(createTriangularPrism(-120, -50, -30, -20, 100, 60));
-shapes2.push(createTriangularPrism(120, -50, -30, 20, 100, 60));
-
-// Create a triangular prism
-shapes.push(shapes1);
-shapes.push(shapes2);
-shapes.push([createPyramid(-220, -50, -30, 80, 100, 60)]);
+// Iterate over a grid on the canvas
+for (var x = 0; x < 600; x += gridSize) {
+    for (var y = 0; y < 600; y += gridSize) {
+        // Randomly choose between creating a cuboid, a triangular prism, or a pyramid
+        var rand = floor(random(0, 3));
+        if (rand === 0) {
+            shapes.push([createCuboid(x, y, 0, gridSize, gridSize, gridSize)]);
+            shapes.push([createCuboid(-x, -y, 0, gridSize, gridSize, gridSize)]);
+            shapes.push([createCuboid(x, -y, 0, gridSize, gridSize, gridSize)]);
+            shapes.push([createCuboid(-x, y, 0, gridSize, gridSize, gridSize)]);
+        } else if (rand === 1) {
+            shapes.push([createTriangularPrism(x, y, 0, gridSize, gridSize, gridSize)]);
+            shapes.push([createTriangularPrism(-x, -y, 0, gridSize, gridSize, gridSize)]);
+            shapes.push([createTriangularPrism(x, -y, 0, gridSize, gridSize, gridSize)]);
+            shapes.push([createTriangularPrism(-x, y, 0, gridSize, gridSize, gridSize)]);
+        } else if (rand === 2) {
+            shapes.push([createPyramid(x, y, 0, gridSize, gridSize, gridSize)]);
+            shapes.push([createPyramid(-x, -y, 0, gridSize, gridSize, gridSize)]);
+            shapes.push([createPyramid(x, -y, 0, gridSize, gridSize, gridSize)]);
+            shapes.push([createPyramid(-x, y, 0, gridSize, gridSize, gridSize)]);
+        }
+    }
+}
 
 
 // Rotate shape around the z-axis
@@ -375,7 +391,7 @@ var b1 = new Button({
 buttons.push(b1);
 
 var b1_target = new Target({
-    translation: new PVector(0, 0),
+    translation: new PVector(-100, 182),
     scale: 1,
     rotation: 0,
     // Hexagon centered at (300, 300)
@@ -414,7 +430,7 @@ var b2 = new Button({
 buttons.push(b2);
 
 var b2_target = new Target({
-    translation: new PVector(0, 0),
+    translation: new PVector(-76, -233),
     scale: 1,
     rotation: 0,
     vertexes: [
@@ -430,12 +446,12 @@ var b2_target = new Target({
 targetShapes.push(b2_target);
 
 var b3 = new Button({
-    translation: new PVector(500, 212),
+    translation: new PVector(489, 212),
     scale: 1,
     rotation: 0,
     fill: color(121, 37, 199, 255),
     // Circle centered at 300, 300 with a radius of 180
-    vertexes: createCircleVertices(115).cVertices,
+    vertexes: createCircleVertices(70).cVertices,
     draggable: true,
     relatedShape: 2
 });
@@ -443,11 +459,11 @@ var b3 = new Button({
 buttons.push(b3);
 
 var b3_target = new Target({
-    translation: new PVector(0, 0),
+    translation: new PVector(83, 76),
     scale: 1,
     rotation: 0,
     fill: color(255, 255, 255, 255),
-    vertexes: createCircleVertices(115).cVertices,
+    vertexes: createCircleVertices(70).cVertices,
     draggable: false,
     target: true,
     relatedShape: 2
@@ -457,7 +473,7 @@ var b3_target = new Target({
 targetShapes.push(b3_target);
 
 var b4 = new Button({
-    translation: new PVector(100, 125),
+    translation: new PVector(143, 125),
     scale: 1,
     rotation: 0,
     vertexes: [
@@ -474,7 +490,7 @@ var b4 = new Button({
 buttons.push(b4);
 
 var b4_target = new Target({
-    translation: new PVector(0, 0),
+    translation: new PVector(-237, 198),
     scale: 1,
     rotation: 0,
     vertexes: [
@@ -503,14 +519,16 @@ var checkHover = function() {
 
 mouseMoved = function() {
     checkHover();
-    for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-        var dx = mouseX - pmouseX;
-        var dy = mouseY - pmouseY;
-        var tx = shapeNum;
-        for (var i = 0; i < shapes[tx].length; i++) {
-            var nodes = shapes[tx][i].nodes;
-            rotateY3D(dx, nodes);
-            rotateX3D(dy, nodes);
+    if (gameState === 0 || gameState === 2) {
+        for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
+            var dx = (mouseX - pmouseX) / 50;
+            var dy = (mouseY - pmouseY) / 50;
+            var tx = shapeNum;
+            for (var i = 0; i < shapes[tx].length; i++) {
+                var nodes = shapes[tx][i].nodes;
+                rotateY3D(dx, nodes);
+                rotateX3D(dy, nodes);
+            }
         }
     }
 };
@@ -527,6 +545,22 @@ mouseReleased = function() {
         }
     }
     shapeDragged = false;
+    if (gameState === 1) {
+        var completeCount = 0;
+        for (var i = 0; i < buttons.length; i++) {
+            if (buttons[i].shapeComplete) {
+                completeCount++;
+            }
+        }
+        if (completeCount === buttons.length) {
+            gameState = 2;
+            colorMode(HSB);
+            edgeColor = color(random(0, 255), random(100, 255), 255);
+            nodeColor = color(0, 0, 0);
+            colorMode(RGB);
+            endTime = millis();
+        }
+    }
 };
 
 
@@ -534,7 +568,8 @@ draw = function() {
     background(255, 255, 255);
     if (gameState === 0) {
         pushMatrix();
-        translate(200, 200);
+        translate(300, 300);
+        strokeWeight(1.0);
 
         var nodes, edges;
 
@@ -567,21 +602,113 @@ draw = function() {
 
                 for (var n = 0; n < nodes.length; n++) {
                     var node = nodes[n];
-                    // ellipse(node[0], node[1], nodeSize, nodeSize);
+                    stroke(nodeColor);
+                    strokeWeight(nodeSize);
+                    point(node[0], node[1]);
                 }
             }
         }
-
+        strokeWeight(1.0);
         popMatrix();
+        textSize(45);
+        textAlign(CENTER, CENTER);
+        rectMode(CENTER);
+        stroke(0, 0, 0);
+        fill(87, 87, 87, 100);
+        rect(300, 100, 575, 50, 10);
+        fill(235, 235, 235);
+        text("Educational Matching Game", 300 + 2.5, 100 + 2);
+        fill(0, 0, 0);
+        text("Educational Matching Game", 300, 100);
+        textSize(35);
+        fill(87, 87, 87, 100);
+        rect(300, 450, 200, 50, 10);
+        fill(235, 235, 235);
+        text("Start Game", 300 + 2.5, 450 + 2);
+        fill(0, 0, 0);
+        text("Start Game", 300, 450);
     } else if (gameState === 1) {
         for (var i = 0; i < buttons.length; i++) {
             targetShapes[i].draw();
             buttons[i].draw();
         }
+    } else if (gameState === 2) {
+        pushMatrix();
+        translate(300, 300);
+        strokeWeight(1.0);
+
+        var nodes, edges;
+
+        // Draw edges
+        stroke(edgeColor);
+
+        for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
+            var tx = shapeNum;
+            for (var i = 0; i < shapes[tx].length; i++) {
+                nodes = shapes[tx][i].nodes;
+                edges = shapes[tx][i].edges;
+
+                for (var e = 0; e < edges.length; e++) {
+                    var n0 = edges[e][0];
+                    var n1 = edges[e][1];
+                    var node0 = nodes[n0];
+                    var node1 = nodes[n1];
+                    line(node0[0], node0[1], node1[0], node1[1]);
+                }
+            }
+        }
+
+        // Draw nodes
+        fill(nodeColor);
+        noStroke();
+        for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
+            var tx = shapeNum;
+            for (var i = 0; i < shapes[tx].length; i++) {
+                nodes = shapes[tx][i].nodes;
+
+                for (var n = 0; n < nodes.length; n++) {
+                    var node = nodes[n];
+                    stroke(nodeColor);
+                    strokeWeight(nodeSize);
+                    point(node[0], node[1]);
+                }
+            }
+        }
+        strokeWeight(1.0);
+        popMatrix();
+        textSize(45);
+        textAlign(CENTER, CENTER);
+        rectMode(CENTER);
+        var time = (endTime - startTime) / 1000;
+        time = round(time * 100) / 100;
+        stroke(0, 0, 0);
+        fill(87, 87, 87, 100);
+        rect(300, 100, 460, 50, 10);
+        fill(235, 235, 235);
+        text("Completed in " + time + "s", 300 + 2.5, 100 + 2);
+        fill(0, 0, 0);
+        text("Completed in " + time + "s", 300, 100);
+        textSize(35);
+        fill(87, 87, 87, 100);
+        rect(300, 450, 158, 50, 10);
+        fill(235, 235, 235);
+        text("Restart", 300 + 2.5, 450 + 2);
+        fill(0, 0, 0);
+        text("Restart", 300, 450);
     }
 };
 
 mouseClicked = function() {
+    if (gameState === 0) {
+        if (mouseInShape([new PVector(300 - 100, 450 - 25), new PVector(300 + 100, 450 - 25), new PVector(300 + 100, 450 + 25), new PVector(300 - 100, 450 + 25)])) {
+            gameState = 1;
+            startTime = millis();
+        }
+    } else if (gameState === 2) {
+        if (mouseInShape([new PVector(300 - 79, 450 - 25), new PVector(300 + 79, 450 - 25), new PVector(300 + 79, 450 + 25), new PVector(300 - 79, 450 + 25)])) {
+            Program.restart();
+        }
+    }
     checkHover();
 };
 
