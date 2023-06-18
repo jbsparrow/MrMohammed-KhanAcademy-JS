@@ -196,19 +196,6 @@ var mouseInShape = function(poly, mouse_X, mouse_Y) {
     return mouseintersect;
 };
 
-var startScreen = function() {
-    background(255, 255, 255);
-    fill(0, 0, 0);
-    textSize(50);
-    textAlign(CENTER, CENTER);
-    text("Educational Kids Game", 300, 200);
-    textSize(20);
-    text("Click to start", 300, 300);
-    noFill();
-    stroke(0, 0, 0);
-    strokeWeight(5);
-    rect(150, 350, 300, 100, 10);
-};
 
 var distanceFromShapeCenters = function(shape1, shape2, threshold) {
     var threshold = threshold || undefined;
@@ -245,7 +232,6 @@ var Button = function(config) {
     this.stroke = config.stroke || color(0, 0, 0, 0);
     this.strokeWeight = config.strokeWeight || 1;
 
-    this.target = config.target || false;
     this.relatedShape = config.relatedShape;
     this.snapDistance = config.hoverDistance || 50;
     this.shapeComplete = config.shapeComplete || false;
@@ -336,7 +322,6 @@ var Target = function(config) {
     this.stroke = config.stroke || color(0, 0, 0, 0);
     this.strokeWeight = config.strokeWeight || 1;
 
-    this.target = config.target || false;
     this.relatedShape = config.relatedShape;
     this.shapeComplete = config.shapeComplete || false;
 
@@ -625,7 +610,7 @@ var startScreen = function() {
     text("Start Game", 300 + 2.5, 450 + 2);
     fill(0, 0, 0);
     text("Start Game", 300, 450);
-}
+};
 
 
 var endScreen = function() {
@@ -691,7 +676,7 @@ var endScreen = function() {
     text("Restart", 300 + 2.5, 450 + 2);
     fill(0, 0, 0);
     text("Restart", 300, 450);
-}
+};
 
 
 draw = function() {
