@@ -226,7 +226,6 @@ var Button = function(config) {
     this.scale = config.scale || 1;
     this.rotation = config.rotation || 0;
     this.vertexes = config.vertexes || [];
-    this.hidden = config.hidden || false;
     this.fill = config.fill || color(255, 255, 255, 255);
     this.currentFill = config.currentFill || config.fill;
     this.stroke = config.stroke || color(0, 0, 0, 0);
@@ -237,7 +236,6 @@ var Button = function(config) {
     this.shapeComplete = config.shapeComplete || false;
 
     this.onClick = config.onClick || function() {};
-    this.hovering = false;
     this.onHover = config.onHover || function() {
         // debug('hover');
         this.currentFill = lerpColor(this.fill, color(255, 255, 255, 0), 0.1);
@@ -316,7 +314,6 @@ var Target = function(config) {
     this.scale = config.scale || 1;
     this.rotation = config.rotation || 0;
     this.vertexes = config.vertexes || [];
-    this.hidden = config.hidden || false;
     this.fill = config.fill || color(255, 255, 255, 255);
     this.currentFill = config.currentFill || color(255, 255, 255, 255);
     this.stroke = config.stroke || color(0, 0, 0, 0);
@@ -326,7 +323,6 @@ var Target = function(config) {
     this.shapeComplete = config.shapeComplete || false;
 
     this.onClick = config.onClick || function() {};
-    this.hovering = false;
     this.onHover = config.onHover || function() {
         var connectedButton = buttons[this.relatedShape];
         if (distanceFromShapeCenters(connectedButton, this, connectedButton.snapDistance)) {
