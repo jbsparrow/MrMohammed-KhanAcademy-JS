@@ -242,7 +242,6 @@ var Button = function(config) {
         return distanceFromShapeCenters(this, targetShapes[this.relatedShape]);
     };
     this.onHoverEnd = config.onHoverEnd || function() {
-        // debug("hover end"); // Gets called while the user is still dragging the shape.
         this.currentFill = this.fill;
         return distanceFromShapeCenters(this, targetShapes[this.relatedShape]);
     };
@@ -715,5 +714,3 @@ mouseDragged = function() {
     }
     checkHover();
 };
-
-debug(Button, Target);
