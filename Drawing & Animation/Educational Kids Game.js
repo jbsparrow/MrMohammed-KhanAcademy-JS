@@ -544,7 +544,7 @@ mouseReleased = function() {
 };
 
 
-var startScreen = function() {
+var draw3DBackground = function() {
     pushMatrix();
     translate(300, 300);
     strokeWeight(1.0);
@@ -588,6 +588,10 @@ var startScreen = function() {
     }
     strokeWeight(1.0);
     popMatrix();
+};
+
+var startScreen = function() {
+    draw3DBackground();
     textSize(45);
     textAlign(CENTER, CENTER);
     rectMode(CENTER);
@@ -609,49 +613,7 @@ var startScreen = function() {
 
 
 var endScreen = function() {
-    pushMatrix();
-    translate(300, 300);
-    strokeWeight(1.0);
-
-    var nodes, edges;
-
-    // Draw edges
-    stroke(edgeColor);
-
-    for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-        var tx = shapeNum;
-        for (var i = 0; i < shapes[tx].length; i++) {
-            nodes = shapes[tx][i].nodes;
-            edges = shapes[tx][i].edges;
-
-            for (var e = 0; e < edges.length; e++) {
-                var n0 = edges[e][0];
-                var n1 = edges[e][1];
-                var node0 = nodes[n0];
-                var node1 = nodes[n1];
-                line(node0[0], node0[1], node1[0], node1[1]);
-            }
-        }
-    }
-
-    // Draw nodes
-    fill(nodeColor);
-    noStroke();
-    for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-        var tx = shapeNum;
-        for (var i = 0; i < shapes[tx].length; i++) {
-            nodes = shapes[tx][i].nodes;
-
-            for (var n = 0; n < nodes.length; n++) {
-                var node = nodes[n];
-                stroke(nodeColor);
-                strokeWeight(nodeSize);
-                point(node[0], node[1]);
-            }
-        }
-    }
-    strokeWeight(1.0);
-    popMatrix();
+    draw3DBackground();
     textSize(45);
     textAlign(CENTER, CENTER);
     rectMode(CENTER);
