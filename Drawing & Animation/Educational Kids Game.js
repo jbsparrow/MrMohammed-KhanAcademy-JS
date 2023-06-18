@@ -186,7 +186,7 @@ var mouseInShape = function(poly, mouse_X, mouse_Y) {
         var vertex2_mouseSide = (vertex2_y > mouse_Y); // true if mouse is below vertex 2
 
         if (vertex1_mouseSide !== vertex2_mouseSide) { // if mouse is between vertexes
-            var intersectX = (vertex2_x - vertex1_x) * (mouse_Y - vertex1_y) / (vertex2_y - vertex1_y) + vertex1_x; // (horizontal distance between vertices) * (vertical distance between vertex 1 and mouse) / (vertical distance between vertices) + (x position of vertex 1)
+            var intersectX = (vertex2_x - vertex1_x) * (mouse_Y - vertex1_y) / (vertex2_y - vertex1_y) + vertex1_x;
             if (mouse_X < intersectX) { // if mouse is to the left of the intersection point
                 mouseintersect = !mouseintersect;
                 // This works by checking if the mouse has crossed the line between the two vertices an odd number of times. If it has, it is inside the shape.
@@ -564,137 +564,147 @@ mouseReleased = function() {
 };
 
 
+var startScreen = function() {
+    pushMatrix();
+    translate(300, 300);
+    strokeWeight(1.0);
+
+    var nodes, edges;
+
+    // Draw edges
+    stroke(edgeColor);
+
+    for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
+        var tx = shapeNum;
+        for (var i = 0; i < shapes[tx].length; i++) {
+            nodes = shapes[tx][i].nodes;
+            edges = shapes[tx][i].edges;
+
+            for (var e = 0; e < edges.length; e++) {
+                var n0 = edges[e][0];
+                var n1 = edges[e][1];
+                var node0 = nodes[n0];
+                var node1 = nodes[n1];
+                line(node0[0], node0[1], node1[0], node1[1]);
+            }
+        }
+    }
+
+    // Draw nodes
+    fill(nodeColor);
+    noStroke();
+    for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
+        var tx = shapeNum;
+        for (var i = 0; i < shapes[tx].length; i++) {
+            nodes = shapes[tx][i].nodes;
+
+            for (var n = 0; n < nodes.length; n++) {
+                var node = nodes[n];
+                stroke(nodeColor);
+                strokeWeight(nodeSize);
+                point(node[0], node[1]);
+            }
+        }
+    }
+    strokeWeight(1.0);
+    popMatrix();
+    textSize(45);
+    textAlign(CENTER, CENTER);
+    rectMode(CENTER);
+    stroke(0, 0, 0);
+    fill(87, 87, 87, 100);
+    rect(300, 100, 575, 50, 10);
+    fill(235, 235, 235);
+    text("Educational Matching Game", 300 + 2.5, 100 + 2);
+    fill(0, 0, 0);
+    text("Educational Matching Game", 300, 100);
+    textSize(35);
+    fill(87, 87, 87, 100);
+    rect(300, 450, 200, 50, 10);
+    fill(235, 235, 235);
+    text("Start Game", 300 + 2.5, 450 + 2);
+    fill(0, 0, 0);
+    text("Start Game", 300, 450);
+}
+
+
+var endScreen = function() {
+    pushMatrix();
+    translate(300, 300);
+    strokeWeight(1.0);
+
+    var nodes, edges;
+
+    // Draw edges
+    stroke(edgeColor);
+
+    for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
+        var tx = shapeNum;
+        for (var i = 0; i < shapes[tx].length; i++) {
+            nodes = shapes[tx][i].nodes;
+            edges = shapes[tx][i].edges;
+
+            for (var e = 0; e < edges.length; e++) {
+                var n0 = edges[e][0];
+                var n1 = edges[e][1];
+                var node0 = nodes[n0];
+                var node1 = nodes[n1];
+                line(node0[0], node0[1], node1[0], node1[1]);
+            }
+        }
+    }
+
+    // Draw nodes
+    fill(nodeColor);
+    noStroke();
+    for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
+        var tx = shapeNum;
+        for (var i = 0; i < shapes[tx].length; i++) {
+            nodes = shapes[tx][i].nodes;
+
+            for (var n = 0; n < nodes.length; n++) {
+                var node = nodes[n];
+                stroke(nodeColor);
+                strokeWeight(nodeSize);
+                point(node[0], node[1]);
+            }
+        }
+    }
+    strokeWeight(1.0);
+    popMatrix();
+    textSize(45);
+    textAlign(CENTER, CENTER);
+    rectMode(CENTER);
+    var time = (endTime - startTime) / 1000;
+    time = round(time * 100) / 100;
+    stroke(0, 0, 0);
+    fill(87, 87, 87, 100);
+    rect(300, 100, 460, 50, 10);
+    fill(235, 235, 235);
+    text("Completed in " + time + "s", 300 + 2.5, 100 + 2);
+    fill(0, 0, 0);
+    text("Completed in " + time + "s", 300, 100);
+    textSize(35);
+    fill(87, 87, 87, 100);
+    rect(300, 450, 158, 50, 10);
+    fill(235, 235, 235);
+    text("Restart", 300 + 2.5, 450 + 2);
+    fill(0, 0, 0);
+    text("Restart", 300, 450);
+}
+
+
 draw = function() {
     background(255, 255, 255);
     if (gameState === 0) {
-        pushMatrix();
-        translate(300, 300);
-        strokeWeight(1.0);
-
-        var nodes, edges;
-
-        // Draw edges
-        stroke(edgeColor);
-
-        for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-            var tx = shapeNum;
-            for (var i = 0; i < shapes[tx].length; i++) {
-                nodes = shapes[tx][i].nodes;
-                edges = shapes[tx][i].edges;
-
-                for (var e = 0; e < edges.length; e++) {
-                    var n0 = edges[e][0];
-                    var n1 = edges[e][1];
-                    var node0 = nodes[n0];
-                    var node1 = nodes[n1];
-                    line(node0[0], node0[1], node1[0], node1[1]);
-                }
-            }
-        }
-
-        // Draw nodes
-        fill(nodeColor);
-        noStroke();
-        for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-            var tx = shapeNum;
-            for (var i = 0; i < shapes[tx].length; i++) {
-                nodes = shapes[tx][i].nodes;
-
-                for (var n = 0; n < nodes.length; n++) {
-                    var node = nodes[n];
-                    stroke(nodeColor);
-                    strokeWeight(nodeSize);
-                    point(node[0], node[1]);
-                }
-            }
-        }
-        strokeWeight(1.0);
-        popMatrix();
-        textSize(45);
-        textAlign(CENTER, CENTER);
-        rectMode(CENTER);
-        stroke(0, 0, 0);
-        fill(87, 87, 87, 100);
-        rect(300, 100, 575, 50, 10);
-        fill(235, 235, 235);
-        text("Educational Matching Game", 300 + 2.5, 100 + 2);
-        fill(0, 0, 0);
-        text("Educational Matching Game", 300, 100);
-        textSize(35);
-        fill(87, 87, 87, 100);
-        rect(300, 450, 200, 50, 10);
-        fill(235, 235, 235);
-        text("Start Game", 300 + 2.5, 450 + 2);
-        fill(0, 0, 0);
-        text("Start Game", 300, 450);
+        startScreen();
     } else if (gameState === 1) {
         for (var i = 0; i < buttons.length; i++) {
             targetShapes[i].draw();
             buttons[i].draw();
         }
     } else if (gameState === 2) {
-        pushMatrix();
-        translate(300, 300);
-        strokeWeight(1.0);
-
-        var nodes, edges;
-
-        // Draw edges
-        stroke(edgeColor);
-
-        for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-            var tx = shapeNum;
-            for (var i = 0; i < shapes[tx].length; i++) {
-                nodes = shapes[tx][i].nodes;
-                edges = shapes[tx][i].edges;
-
-                for (var e = 0; e < edges.length; e++) {
-                    var n0 = edges[e][0];
-                    var n1 = edges[e][1];
-                    var node0 = nodes[n0];
-                    var node1 = nodes[n1];
-                    line(node0[0], node0[1], node1[0], node1[1]);
-                }
-            }
-        }
-
-        // Draw nodes
-        fill(nodeColor);
-        noStroke();
-        for (var shapeNum = 0; shapeNum < shapes.length; shapeNum++) {
-            var tx = shapeNum;
-            for (var i = 0; i < shapes[tx].length; i++) {
-                nodes = shapes[tx][i].nodes;
-
-                for (var n = 0; n < nodes.length; n++) {
-                    var node = nodes[n];
-                    stroke(nodeColor);
-                    strokeWeight(nodeSize);
-                    point(node[0], node[1]);
-                }
-            }
-        }
-        strokeWeight(1.0);
-        popMatrix();
-        textSize(45);
-        textAlign(CENTER, CENTER);
-        rectMode(CENTER);
-        var time = (endTime - startTime) / 1000;
-        time = round(time * 100) / 100;
-        stroke(0, 0, 0);
-        fill(87, 87, 87, 100);
-        rect(300, 100, 460, 50, 10);
-        fill(235, 235, 235);
-        text("Completed in " + time + "s", 300 + 2.5, 100 + 2);
-        fill(0, 0, 0);
-        text("Completed in " + time + "s", 300, 100);
-        textSize(35);
-        fill(87, 87, 87, 100);
-        rect(300, 450, 158, 50, 10);
-        fill(235, 235, 235);
-        text("Restart", 300 + 2.5, 450 + 2);
-        fill(0, 0, 0);
-        text("Restart", 300, 450);
+        endScreen();
     }
 };
 
